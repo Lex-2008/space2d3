@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>space2d3</title>
+	<link id="favicon" rel="icon" href="star.svg">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<style>
+		html {
+			color-scheme: light dark;
+		}
+
+		dialog {
+			border-style: ridge;
+		}
+
+		fieldset {
+			border-color: ButtonBorder;
+		}
+
+		legend {
+			white-space: nowrap
+		}
+
+		label:has(input:disabled) {
+			color: gray
+		}
+
+		summary {
+			cursor: pointer;
+		}
+	</style>
+</head>
+<body>
+	<fieldset>
+		<legend>Your Ship</legend>
+		<div>
+			<button id="save">Save Ship</button>
+			<button id="random">Generate Random Ship</button>
+			<button id="load">Load Ship</button>
+		</div>
+		<canvas id="myCanvas" width="500" height="500" style="background:black;border:2px groove ButtonBorder;"></canvas>
+	</fieldset>
+	<script src="script.js"></script>
+</body>
+</html>
