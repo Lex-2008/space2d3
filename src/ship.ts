@@ -27,14 +27,19 @@ export class Ship {
         const ship = new Ship()
         ship.isAlien = data.isAlien
         ship.offsets = data.offsets
-        ship.rows = data.rows.map(row => row.map((x: { type: string }) => fromJSON(x)))
+        ship.rows = data.rows.map(row => row.map((x: { type: string }) => fromJSON(x) as Component))
         return ship;
     }
 
     // functions used in drawing
     get gridSize() {
         if (this.isAlien) {
-            //
+            return {
+                'x0': 0,
+                'x1': 0,
+                'y0': 0,
+                'y1': 0
+            }
         } else {
             let max_pos = 0
             let max_neg = 0
@@ -86,6 +91,14 @@ export class Ship {
                 'y': 0,
                 'w': this.rows.length,
                 'h': 1
+            }
+        }
+    }
+    oppositeComponent(a: Component) {
+        for (let row = 0; row <= this.rows.length; row++) {
+            let i = this.rows[row].indexOf(a)
+            if (i >= 0) {
+                return this.rows[this.rows.length - 1 - row][i]
             }
         }
     }

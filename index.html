@@ -28,18 +28,36 @@
 		summary {
 			cursor: pointer;
 		}
+
+		.component>div {
+			display: none;
+		}
 	</style>
+	<style id="currentComponent"></style>
 </head>
 <body>
-	<fieldset>
-		<legend>Your Ship</legend>
-		<div>
-			<button id="save">Save Ship</button>
-			<button id="random">Generate Random Ship</button>
-			<button id="load">Load Ship</button>
-		</div>
-		<canvas id="myCanvas" width="500" height="500" style="background:black;border:2px groove ButtonBorder;"></canvas>
-	</fieldset>
+	<div style="display: flex;">
+		<fieldset style="width: 154px;">
+			<legend>Your Ship</legend>
+			<div style="text-align: center;">
+				<button id="save">Save Ship</button>
+				<button id="load">Load Ship</button>
+				<button id="random">Generate Random</button>
+			</div>
+			<div id="canvasBox" style="width: 170px; height: 170px; overflow: hidden; background: black; border: 2px groove ButtonBorder;">
+				<canvas id="myCanvas" style="position: relative; transition: all 0.166s cubic-bezier(0,.5,.8,.8) 0s; transition-property: top,left;"></canvas>
+			</div>
+		</fieldset>
+		<fieldset class="component" style="width: 300px;">
+			<legend id="componentLegend"></legend>
+			<div id="CargoBay">Space to store come cargo. <div class="CargoBay_NonEmpty">It contains: <ul></ul>
+				</div>
+				<div class="CargoBay_Empty">It is empty</div>
+			</div>
+			<div id="Ballast">Dead weight added here to compensate component on the other side</div>
+			<div id="Passage">Helps you walk around the ship</div>
+		</fieldset>
+	</div>
 	<script src="script.js"></script>
 </body>
 </html>
