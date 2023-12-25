@@ -166,7 +166,15 @@ export class Ship {
                     this.rows[max - i].pop()
                 }
             }
-            // remove empty rows?
+            // TODO: remove empty rows?
+            // record what's opposite to ballast
+            for (var i = 0; i <= max; i++) {
+                for (var j = 0; j <= this.rows[i].length; j++) {
+                    if (this.rows[i][j] instanceof Ballast) {
+                        (this.rows[i][j] as Ballast).opposite = this.rows[max - i][j].typename
+                    }
+                }
+            }
         }
     }
 }

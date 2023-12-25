@@ -52,7 +52,6 @@ function x_draw(s: Ship) {
 
 function x_rand() {
     s = Ship.randomShip(35);
-    console.log(s);
     x_draw(s);
 }
 

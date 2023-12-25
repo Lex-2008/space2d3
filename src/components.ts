@@ -14,9 +14,10 @@ export class Passage extends UselessComponent { }
 addType(Passage, 'Passage')
 
 export class Ballast extends UselessComponent {
-    // onEnter(div: HTMLDivElement) {
-    //     div.getElementsByTagName('b')[0].innerText = this.ship.oppositeComponent(this)?.typename || ''
-    // }
+    opposite? = ''
+    onEnter(div: HTMLDivElement) {
+        div.getElementsByTagName('b')[0].innerText = this.opposite || ''
+    }
 }
 addType(Ballast, 'Ballast')
 
