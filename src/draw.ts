@@ -1,4 +1,4 @@
-import { Component, Passage } from "./components"
+import { Airlock, Component, Passage } from "./components"
 import { WalkMap } from "./walker";
 import { Ship, xywh } from "./ship";
 
@@ -46,15 +46,38 @@ function drawPassage(ctx: CanvasRenderingContext2D, x0: number, y0: number, ship
     }
 }
 
+export function drawAirlock(ctx: CanvasRenderingContext2D, x: number, y: number, map?: WalkMap) {
+    // NOTE: YOUR ship is always the lower one
+    // TODO: this is for normal-to-normal ship. How it will look with alien ships - TBD
+    ctx.strokeStyle = "white";
+    ctx.strokeStyle = "white";
+    ctx.fillStyle = "white";
+    ctx.beginPath();
+    ctx.moveTo(x * componentSize + componentOffset, y * componentSize);
+    ctx.lineTo(x * componentSize + componentOffset * 2, (y + 0.5) * componentSize);
+    ctx.lineTo(x * componentSize + componentOffset, (y + 1) * componentSize);
+    ctx.lineTo((x + 1) * componentSize - componentOffset, (y + 1) * componentSize);
+    ctx.lineTo((x + 1) * componentSize - componentOffset * 2, (y + 0.5) * componentSize);
+    ctx.lineTo((x + 1) * componentSize - componentOffset, y * componentSize);
+    ctx.closePath();
+    ctx.stroke();
+
+    if (map) {
+        map.map[x][y].canBeHere = true
+        map.map[x][y].canGoY = true
+        map.map[x][y].component = new Airlock()
+    }
+}
+
 export function drawShip(ctx: CanvasRenderingContext2D, x0, y0, ship: Ship, map?: WalkMap) {
     for (let row = 0; row < ship.rows.length; row++) {
         for (let i = 0; i < ship.rows[row].length; i++) {
-            let component = ship.rows[row][i]
-            let xy = ship.rowToXY(row, i)
-            component.cellName = String.fromCharCode(65 + row) + xy.y
-            drawComponent(ctx, x0 + xy.x, y0 - xy.y, ship, component, map)
+            let component = ship.rows[row][i];
+            let xy = ship.rowToXY(row, i);
+            component.cellName = String.fromCharCode(65 + row) + xy.y;
+            drawComponent(ctx, x0 + xy.x, y0 - xy.y, ship, component, map);
         }
     }
-    drawPassage(ctx, x0, y0, ship, map)
+    drawPassage(ctx, x0, y0, ship, map);
 }
 

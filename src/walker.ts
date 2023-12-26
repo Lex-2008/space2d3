@@ -52,7 +52,27 @@ export class Walker {
     goLt() { return this.goX(-1) }
     goRt() { return this.goX(1) }
 
-    reposition() {
+    jumpTo(x: number, y: number, x0?: number, y0?: number) {
+        if (x0 !== undefined && y0 !== undefined) {
+            this.x = x0;
+            this.y = y0;
+            this.reposition(true);
+            this.x = x;
+            this.y = y;
+            this.reposition();
+            this.onEnter(this.map.map[x][y].component);
+        } else {
+            this.x = x;
+            this.y = y;
+            this.reposition(true);
+            this.onEnter(this.map.map[x][y].component);
+        }
+    }
+
+    reposition(fast?: boolean) {
+        if (fast) {
+            this.canvas.classList.add('notransition');
+        }
         let walkerOnCanvas_x = (this.x + 0.5) * componentSize
         let walkerOnDiv_x = this.box.offsetWidth / 2
         let canvasOffset_x = walkerOnDiv_x - walkerOnCanvas_x
@@ -62,5 +82,9 @@ export class Walker {
         let walkerOnDiv_y = this.box.offsetHeight / 2
         let canvasOffset_y = walkerOnDiv_y - walkerOnCanvas_y
         this.canvas.style.top = canvasOffset_y + 'px'
+        if (fast) {
+            this.canvas.offsetHeight; // Trigger a reflow, flushing the CSS changes
+            this.canvas.classList.remove('notransition');
+        }
     }
 }

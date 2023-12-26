@@ -34,11 +34,14 @@ export class Ship {
     // functions used in drawing
     get gridSize() {
         if (this.isAlien) {
+            // TODO
             return {
                 'x0': 0,
                 'x1': 0,
                 'y0': 0,
-                'y1': 0
+                'y1': 0,
+                'w': 0,
+                'h': 0
             }
         } else {
             let max_pos = 0
@@ -49,9 +52,11 @@ export class Ship {
             }
             return {
                 'x0': 0,
-                'x1': this.rows.length,
+                'x1': this.rows.length - 1,
                 'y0': max_pos,
-                'y1': max_neg
+                'y1': max_neg,
+                'w': this.rows.length,
+                'h': max_pos + max_neg + 1
             }
         }
     }
@@ -175,6 +180,34 @@ export class Ship {
                     }
                 }
             }
+        }
+    }
+    get topAirlock() {
+        // returns x-coordinate 
+        // NOTE: putTwoShips assumes that airlock location is always counted from left side,
+        // i.e. return value=0 means "leftmost column"
+        if (this.isAlien) {
+            // TODO
+            return 0;
+        } else {
+            let maxLen = 0
+            for (let i = 0; i < this.rows.length; i++) {
+                maxLen = Math.max(maxLen, this.rows[i].length - this.offsets[i])
+            }
+            for (let i = 0; i < this.rows.length; i++) {
+                if (this.rows[i].length - this.offsets[i] == maxLen)
+                    return i
+            }
+            return 0 // should never happen
+        }
+    }
+    get bottomAirlock() {
+        if (this.isAlien) {
+            // TODO
+            return 0;
+        } else {
+            const maxOffset = Math.max(...this.offsets);
+            return this.offsets.lastIndexOf(maxOffset);
         }
     }
 }

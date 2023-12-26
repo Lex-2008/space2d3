@@ -10,6 +10,9 @@ export abstract class Component extends SaveableObject {
 
 export abstract class UselessComponent extends Component { }
 
+export class Airlock extends UselessComponent { }
+addType(Airlock, 'Airlock')
+
 export class Passage extends UselessComponent { }
 addType(Passage, 'Passage')
 
