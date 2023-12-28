@@ -30,13 +30,14 @@ let other_ship = Ship.randomShip(35);
 //var s = Ship.randomShip(1);
 //var m = new WalkMap(0, 0)
 var w = new Walker()
-w.box = gebi('canvasBox')
 var wm = new walkManager()
 wm.walker = w;
 
 var c = gebi("myCanvas") as HTMLCanvasElement;
 var ctx = c.getContext("2d") as CanvasRenderingContext2D;
 
+w.box = gebi('canvasBox')
+w.human = gebi('human')
 w.canvas = c
 w.onEnter = onEnter
 
@@ -73,7 +74,7 @@ function x_rand() {
 
 function x_attach() {
     wm.attach(ctx, Ship.randomShip(25));
-    setStatus('Docked to a ship');
+    setStatus('Docked to another ship');
 }
 
 // function x_save() {

@@ -57,8 +57,9 @@ export class walkManager {
         const player_x = this.walker.x - this.twoShipsData.bx0;
         const player_y = this.walker.y - this.twoShipsData.by0 + 1;
         this.drawMyShip(ctx);
-        this.walker.jumpTo(this.oneShipData.x0 + 1 + player_x, this.oneShipData.y0 + 1 + player_y,
-            this.oneShipData.x0 + 1 + player_x, this.oneShipData.y0 + player_y);
+        //this.walker.jumpTo(this.oneShipData.x0 + 1 + player_x, this.oneShipData.y0 + 1 + player_y),
+        this.walker.jumpTo(this.oneShipData.x0 + 1 + player_x, this.oneShipData.y0 + player_y);
+        this.walker.goDn(true);
     }
 
     attach(ctx: CanvasRenderingContext2D, otherShip: Ship) {

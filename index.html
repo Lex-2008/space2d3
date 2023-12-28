@@ -48,8 +48,9 @@
 				<button id="load">Load Ship</button>
 				<button id="random">Generate Random</button>
 			</div> -->
-			<div id="canvasBox" style="width: 200px; height: 200px; overflow: hidden; background: black; border: 2px groove ButtonBorder;">
-				<canvas id="myCanvas" style="position: relative; transition: all 0.166s cubic-bezier(0,.5,.8,.8) 0s; transition-property: top,left;"></canvas>
+			<div id="canvasBox" style="position: relative; display:flex; align-items: center; justify-content: center; width: 200px; height: 200px; overflow: hidden; background: black; border: 2px groove ButtonBorder;">
+				<canvas id="myCanvas" style="position: absolute; transition: all 0.166s cubic-bezier(0,.5,.8,.8) 0s; transition-property: top,left;"></canvas>
+				<span id="human" style="background-image: url(human.png);background-size: contain; width: 11px;height: 16px;transform: rotate(-90deg); transition: transform 0.166s linear 0s;"></span>
 			</div>
 		</fieldset>
 		<div>
@@ -64,11 +65,13 @@
 					<div class="CargoBay_Empty">It is empty</div>
 				</div>
 				<div id="Ballast">Dead weight added here to compensate <b></b> component on the other side</div>
-				<div id="Passage">Helps you walk around the ship</div>
+				<div id="Passage">Helps you walk around the ship. <br> Hint: use WASD to walk around. If it doesn't work - click here, change keyboard language to English or disable CapsLock</div>
 				<div id="Airlock">Lets you get from one ship to another. You can also <button id="Airlock_Detach">Detach</button> your ship from theirs. </div>
 			</fieldset>
 		</div>
 	</div>
+	<hr>
+	<center><small> "human" image from <a href="https://kenney.nl/assets/sports-pack">Sports Pack by Kenney</a> </small></center>
 	<script src="script.js"></script>
 </body>
 </html>

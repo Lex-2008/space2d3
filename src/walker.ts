@@ -27,6 +27,7 @@ export class Walker {
     y: number
     map: WalkMap
     box: HTMLElement
+    human: HTMLElement
     canvas: HTMLCanvasElement
     onEnter: (arg0?: Component) => void
 
@@ -38,8 +39,8 @@ export class Walker {
         this.onEnter(this.map.map[this.x][this.y].component)
         return true
     }
-    goY(sign: number) {
-        if (!this.map.map[this.x][this.y].canGoY) return false;
+    goY(sign: number, sure?: boolean) {
+        if (!sure && !this.map.map[this.x][this.y].canGoY) return false;
         if (!this.map.map[this.x][this.y + sign].canBeHere) return false;
         this.y += sign
         this.reposition()
@@ -47,20 +48,20 @@ export class Walker {
         return true
     }
 
-    goUp() { return this.goY(-1) }
-    goDn() { return this.goY(1) }
-    goLt() { return this.goX(-1) }
-    goRt() { return this.goX(1) }
+    goUp() { this.goY(-1); this.human.style.transform = 'rotate(-90deg)' }
+    goDn(sure?: boolean) { this.goY(1, sure); this.human.style.transform = 'rotate(90deg)' }
+    goLt() { this.goX(-1); this.human.style.transform = 'rotate(180deg)' }
+    goRt() { this.goX(1); this.human.style.transform = 'rotate(0deg)' }
 
     jumpTo(x: number, y: number, x0?: number, y0?: number) {
         if (x0 !== undefined && y0 !== undefined) {
-            this.x = x0;
-            this.y = y0;
-            this.reposition(true);
-            this.x = x;
-            this.y = y;
-            this.reposition();
-            this.onEnter(this.map.map[x][y].component);
+            // this.x = x0;
+            // this.y = y0;
+            // this.reposition(true);
+            // this.x = x;
+            // this.y = y;
+            // this.reposition();
+            // this.onEnter(this.map.map[x][y].component);
         } else {
             this.x = x;
             this.y = y;
