@@ -1,4 +1,5 @@
-import { shipBaseSpeed } from "./const.js";
+import { planet_size, shipBaseSpeed } from "./const.js";
+import { lineCrossesObj } from "./geometry.js";
 import { makePlanets, Planet, PlanetType } from "./planets.js";
 import { Ship } from "./ship.js";
 import { seq, randomFrom, randomInt, shuffle } from "./utils.js";
@@ -86,8 +87,7 @@ export class Star {
 		this.planets = load.p.map((x) => new Planet(...x));
 		for (var planet of this.planets) {
 			// add neighbours
-			// TODO: check if can travel between them?
-			planet.neighbours = shuffle(this.planets.filter(p => p != planet));
+			planet.neighbours = shuffle(this.planets.filter(p => p != planet && !this.pathCollides(p, planet)));
 			// add planet to grid
 			this.grid[Math.floor(planet.x)][Math.floor(planet.y)] = planet;
 		}
@@ -104,12 +104,20 @@ export class Star {
 	// 	}
 	// }
 
+	pathCollides(a: Planet, b: Planet): boolean {
+		if (lineCrossesObj(a, b, this, 0.5)) return true;
+		for (var planet of this.planets) {
+			if (planet != a && planet != b &&
+				lineCrossesObj(a, b, planet, planet_size)) return true;
+		}
+		return false;
+	};
+
 	addRandomShips(now: number) {
 		this.ships = [];
-		// let i = 0, j = 0;
 		for (let i = 0; i < this.planets.length; i++) {
 			for (let j = 0; j < i; j++) {
-				// TODO: check if can travel between them?
+				if (this.planets[i].neighbours.indexOf(this.planets[j]) < 0) continue;
 				let s = Ship.randomShip(15);
 				const dist = Math.hypot(this.planets[i].x - this.planets[j].x, this.planets[i].y - this.planets[j].y);
 				const flyTime = dist / shipBaseSpeed;
