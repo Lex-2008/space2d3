@@ -1,5 +1,5 @@
 import { Cargo } from "./cargo"
-import { draw_star } from "./draw"
+import { draw_star, showTime } from "./draw"
 import { SaveableObject, addType, fromJSON } from "./saveableType"
 import { Ship } from "./ship"
 
@@ -84,10 +84,13 @@ function drawRadar(ts) {
     const ctx = c.getContext("2d") as CanvasRenderingContext2D;
     const gs = window.gs;
     gs.now += Math.max(0, Math.min(ts - gs.realTimestamp, 1000)) / 1000;
-    console.log(Math.round(gs.now));
+    // console.log(Math.round(gs.now));
     gs.realTimestamp = ts;
+    // TODO: draw planets only once, and redraw only ships
+    // (maybe on another canvas)
     draw_star(ctx, gs.star, gs.now);
     window.requestAnimationFrame(drawRadar);
+    // showTime(gs.now);
 }
 
 export abstract class EngineComponent extends NormalComponent { }

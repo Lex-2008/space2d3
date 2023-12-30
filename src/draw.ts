@@ -4,6 +4,7 @@ import { Ship, xywh } from "./ship";
 import { Planet } from "./planets";
 import { Star } from "./stars";
 import { planet_size } from "./const";
+import { gebi } from "./index";
 
 export const componentSize = 50
 export const componentOffset = 5
@@ -141,3 +142,19 @@ export function draw_star(ctx: CanvasRenderingContext2D, star: Star, now?: numbe
             draw_ship(ctx, ship, cell_size, 0, now);
         }
 }
+
+export function showTime() {
+    // console.log('showTime', now);
+    // gebi('now').innerText = Math.round(now * 100) / 100;
+    // const date = Math.floor(now);
+    const now = window.gs.now;
+    const year = Math.floor(now / 300) + 3000;
+    const month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov'][Math.floor((now % 300) / 30)];
+    const day = Math.floor(now % 30) + 1;
+    gebi('now').innerText = `${day} ${month} ${year}`;
+    // const time = now % 1;
+    // gebi('now-hr').innerText = Math.floor(time * 25);
+    // gebi('now-min').innerText = Math.round((time * 25 * 50) % 25);
+}
+
+// setInterval(showTime, 1000);
