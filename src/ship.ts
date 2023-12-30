@@ -14,6 +14,11 @@ export class Ship {
     isAlien: boolean = false
     rows: Array<Array<Component>> = []
     offsets: Array<number> = []
+    // next 4 are yet unused, to be used by detach/attach logic
+    isPlayerShip: boolean = false
+    playerOnShip: boolean = false
+    playerX: number
+    playerY: number
 
     toJSON() {
         return {
@@ -111,7 +116,7 @@ export class Ship {
     static randomShip(size: number) {
         const rowCount = 4
         const componentTypes = Object.values(types).filter(x => (x.prototype instanceof NormalComponent)) as Array<typeof Component>
-        const cargoTypes = Object.values(types).filter(x => (x.prototype instanceof UsefulCargo)) as Array<typeof Cargo>
+        const cargoTypes = Object.values(types).filter(x => (x.prototype instanceof Cargo)) as Array<typeof Cargo>
         const ship = new Ship()
         ship.rows = [[], [], [], []]
         ship.offsets = [0, 0, 0, 0]

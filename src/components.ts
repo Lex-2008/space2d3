@@ -1,11 +1,14 @@
 import { Cargo } from "./cargo"
+import { draw_star } from "./draw"
 import { SaveableObject, addType, fromJSON } from "./saveableType"
 import { Ship } from "./ship"
 
 export abstract class Component extends SaveableObject {
     cellName? = ''
     // ship: Ship
-    onEnter(div: HTMLDivElement) { }
+    // TODO: pass "gameState" / "gameManager" argument,
+    // so the component could use info about global state
+    onEnter(gs) { }
 }
 
 export abstract class UselessComponent extends Component { }
@@ -18,8 +21,8 @@ addType(Passage, 'Passage')
 
 export class Ballast extends UselessComponent {
     opposite? = ''
-    onEnter(div: HTMLDivElement) {
-        div.getElementsByTagName('b')[0].innerText = this.opposite || ''
+    onEnter(gs) {
+        (document.querySelector('#Ballast b') as HTMLElement).innerText = this.opposite || ''
     }
 }
 addType(Ballast, 'Ballast')
@@ -57,13 +60,22 @@ export class CargoBay extends NormalComponent {
         a.cargo = data.cargo.map((x: { type: string }) => fromJSON(x));
         return a;
     }
-    onEnter(div: HTMLDivElement) {
-        div.getElementsByTagName('ul')[0].innerHTML = this.cargo.map(x => `<li>${x.typename}</li>`).join('');
-        (div.getElementsByClassName('CargoBay_Empty')[0] as HTMLDivElement).style.display = (this.cargo.length == 0) ? '' : 'none';
-        (div.getElementsByClassName('CargoBay_NonEmpty')[0] as HTMLDivElement).style.display = (this.cargo.length == 0) ? 'none' : '';
+    onEnter(gs) {
+        (document.querySelector('#CargoBay ul') as HTMLUListElement).innerHTML = this.cargo.map(x => `<li>${x.typename}</li>`).join('');
+        (document.getElementById('CargoBay_Empty') as HTMLDivElement).style.display = (this.cargo.length == 0) ? '' : 'none';
+        (document.getElementById('CargoBay_NonEmpty') as HTMLDivElement).style.display = (this.cargo.length == 0) ? 'none' : '';
     }
 }
 addType(CargoBay, 'CargoBay');
+
+export class Radar extends NormalComponent {
+    onEnter(gs) {
+        const c = document.querySelector('#Radar canvas') as HTMLCanvasElement
+        const ctx = c.getContext("2d") as CanvasRenderingContext2D;
+        draw_star(ctx, gs.star);
+    }
+}
+addType(Radar, 'Radar');
 
 
 export abstract class EngineComponent extends NormalComponent { }

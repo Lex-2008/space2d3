@@ -6,6 +6,7 @@ import { Rocket } from "./cargo.js";
 import { componentSize, drawShip } from "./draw.js";
 import { walkManager } from "./walkManager.js";
 import { WalkMap, Walker } from "./walker.js";
+import { Star } from "./stars.js";
 
 export function gebi(id: string) {
     const element = document.getElementById(id);
@@ -26,6 +27,8 @@ if (location.hostname == 'localhost' || location.hostname == '127.0.0.1') {
 
 let my_ship = Ship.randomShip(15);
 let other_ship = Ship.randomShip(35);
+
+var gs = { star: new Star() } // GameState
 
 //var s = Ship.randomShip(1);
 //var m = new WalkMap(0, 0)
@@ -103,12 +106,11 @@ window.onkeypress = (e) => {
 function onEnter(c?: Component) {
     if (!c) return;
     gebi('currentComponent').innerHTML = `#${c.typename} {display:block}`
-    let myDiv = gebi(c.typename) as HTMLDivElement
     if (c.cellName)
         gebi('componentLegend').innerText = `${c.cellName}: ${c.typename}`
     else
         gebi('componentLegend').innerText = `${c.typename}`
-    c.onEnter(myDiv)
+    c.onEnter(gs)
 }
 
 function setStatus(s: string) {

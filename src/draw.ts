@@ -1,6 +1,8 @@
 import { Airlock, Component, Passage } from "./components"
 import { WalkMap } from "./walker";
 import { Ship, xywh } from "./ship";
+import { Planet } from "./planets";
+import { Star } from "./stars";
 
 export const componentSize = 50
 export const componentOffset = 5
@@ -79,5 +81,44 @@ export function drawShip(ctx: CanvasRenderingContext2D, x0, y0, ship: Ship, map?
         }
     }
     drawPassage(ctx, x0, y0, ship, map);
+}
+
+function draw_planet(ctx: CanvasRenderingContext2D, planet: Planet, cell_size: number, planet_size: number) {
+    const x = (planet.x) * cell_size;
+    const y = (planet.y) * cell_size;
+    var grd = ctx.createRadialGradient(x - 1, y - 1, 2, x, y, planet_size);
+    grd.addColorStop(0, planet.color_in);
+    grd.addColorStop(1, planet.color_out);
+    ctx.fillStyle = grd;
+    ctx.beginPath();
+    ctx.arc(x, y, planet_size, 0, 6);
+    ctx.fill();
+}
+
+
+export function draw_star(ctx: CanvasRenderingContext2D, star: Star) {
+    //calc_sizes(ctx, star);
+    const max_size = ctx.canvas.width;
+    const cell_size = max_size / (star.size);
+    const planet_size = cell_size / 5;
+    const center = max_size / 2;
+    ctx.clearRect(0, 0, max_size, max_size);
+    if (star.bright) {
+        let grd = ctx.createRadialGradient(center, center, 0, center, center, cell_size / 2);
+        grd.addColorStop(0, "white");
+        grd.addColorStop(0.5, star.color);
+        grd.addColorStop(1, "transparent");
+        ctx.fillStyle = grd;
+        ctx.fillRect(0, 0, max_size, max_size);
+    } else {
+        let grd = ctx.createRadialGradient(center, center, 10, center, center, cell_size / 2);
+        grd.addColorStop(0, star.color);
+        grd.addColorStop(1, "transparent");
+        ctx.fillStyle = grd;
+        ctx.fillRect(0, 0, max_size, max_size);
+    }
+    for (let planet of star.planets) {
+        draw_planet(ctx, planet, cell_size, planet_size);
+    }
 }
 
