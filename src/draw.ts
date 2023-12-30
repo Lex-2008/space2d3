@@ -92,6 +92,10 @@ export function draw_ship(ctx: CanvasRenderingContext2D, ship: Ship, cell_size: 
     // console.log('draw', ship.color, x, y);
     ctx.fillStyle = '#' + ship.color;
     ctx.fillRect(x, y, 2, 2);
+    ctx.beginPath();
+    ctx.arc(x, y, cell_size, 0, 7);
+    ctx.strokeStyle = 'red';
+    ctx.stroke();
 }
 
 function draw_planet(ctx: CanvasRenderingContext2D, planet: Planet, cell_size: number, planet_size: number) {
