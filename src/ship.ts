@@ -1,5 +1,7 @@
 import { Cargo, UsefulCargo } from "./cargo"
 import { Ballast, CargoBay, Component, NormalComponent } from "./components"
+import { shipColors } from "./const"
+import { Planet } from "./planets"
 import { fromJSON, types } from "./saveableType"
 import { randomFrom, randomInt } from "./utils"
 
@@ -11,6 +13,7 @@ export interface xywh {
 }
 
 export class Ship {
+    color: string;
     isAlien: boolean = false
     rows: Array<Array<Component>> = []
     offsets: Array<number> = []
@@ -19,6 +22,22 @@ export class Ship {
     playerOnShip: boolean = false
     playerX: number
     playerY: number
+    // position in space
+    spaceX: number
+    spaceY: number
+    fromPlanet: Planet
+    toPlanet: Planet
+    fromTime: number
+    toTime: number
+
+    updateSpaceXY(now: number) {
+        while (now >= this.toTime) {
+            this.toPlanet.dispatch(this, this.toTime);
+        }
+        const flightProgress = (now - this.fromTime) / (this.toTime - this.fromTime);
+        this.spaceX = this.fromPlanet.x + (this.toPlanet.x - this.fromPlanet.x) * flightProgress;
+        this.spaceY = this.fromPlanet.y + (this.toPlanet.y - this.fromPlanet.y) * flightProgress;
+    }
 
     toJSON() {
         return {
@@ -118,6 +137,7 @@ export class Ship {
         const componentTypes = Object.values(types).filter(x => (x.prototype instanceof NormalComponent)) as Array<typeof Component>
         const cargoTypes = Object.values(types).filter(x => (x.prototype instanceof Cargo)) as Array<typeof Cargo>
         const ship = new Ship()
+        ship.color = randomFrom(shipColors);
         ship.rows = [[], [], [], []]
         ship.offsets = [0, 0, 0, 0]
         for (let i = 0; i < size; i++) {

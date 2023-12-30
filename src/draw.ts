@@ -72,6 +72,7 @@ export function drawAirlock(ctx: CanvasRenderingContext2D, x: number, y: number,
 }
 
 export function drawShip(ctx: CanvasRenderingContext2D, x0, y0, ship: Ship, map?: WalkMap) {
+    // draw ship INTERIOR
     for (let row = 0; row < ship.rows.length; row++) {
         for (let i = 0; i < ship.rows[row].length; i++) {
             let component = ship.rows[row][i];
@@ -81,6 +82,16 @@ export function drawShip(ctx: CanvasRenderingContext2D, x0, y0, ship: Ship, map?
         }
     }
     drawPassage(ctx, x0, y0, ship, map);
+}
+
+export function draw_ship(ctx: CanvasRenderingContext2D, ship: Ship, cell_size: number, ship_size: number, now: number) {
+    // draw ship ON STAR MAP
+    ship.updateSpaceXY(now);
+    const x = (ship.spaceX) * cell_size;
+    const y = (ship.spaceY) * cell_size;
+    // console.log('draw', ship.color, x, y);
+    ctx.fillStyle = '#' + ship.color;
+    ctx.fillRect(x, y, 2, 2);
 }
 
 function draw_planet(ctx: CanvasRenderingContext2D, planet: Planet, cell_size: number, planet_size: number) {
@@ -96,7 +107,7 @@ function draw_planet(ctx: CanvasRenderingContext2D, planet: Planet, cell_size: n
 }
 
 
-export function draw_star(ctx: CanvasRenderingContext2D, star: Star) {
+export function draw_star(ctx: CanvasRenderingContext2D, star: Star, now?: number) {
     //calc_sizes(ctx, star);
     const max_size = ctx.canvas.width;
     const cell_size = max_size / (star.size);
@@ -120,5 +131,9 @@ export function draw_star(ctx: CanvasRenderingContext2D, star: Star) {
     for (let planet of star.planets) {
         draw_planet(ctx, planet, cell_size, planet_size);
     }
-}
 
+    if (now !== undefined)
+        for (let ship of star.ships) {
+            draw_ship(ctx, ship, cell_size, 0, now);
+        }
+}

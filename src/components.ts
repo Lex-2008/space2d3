@@ -72,11 +72,21 @@ export class Radar extends NormalComponent {
     onEnter(gs) {
         const c = document.querySelector('#Radar canvas') as HTMLCanvasElement
         const ctx = c.getContext("2d") as CanvasRenderingContext2D;
-        draw_star(ctx, gs.star);
+        draw_star(ctx, gs.star, gs.now);
+        window.requestAnimationFrame(drawRadar);
     }
 }
 addType(Radar, 'Radar');
 
+function drawRadar() {
+    const c = document.querySelector('#Radar canvas') as HTMLCanvasElement
+    if (c.offsetParent === null) return;
+    const ctx = c.getContext("2d") as CanvasRenderingContext2D;
+    const gs = window.gs;
+    gs.now += 0.01;
+    draw_star(ctx, gs.star, gs.now);
+    window.requestAnimationFrame(drawRadar);
+}
 
 export abstract class EngineComponent extends NormalComponent { }
 

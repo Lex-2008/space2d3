@@ -1,4 +1,6 @@
 import { Food, Iron, Radioactives, ResourceCargo, Water } from "./cargo";
+import { shipBaseSpeed } from "./const";
+import { Ship } from "./ship";
 import { shuffle, seq } from "./utils";
 
 export type PlanetType = [name: string, buys: typeof ResourceCargo | null, sells: typeof ResourceCargo, color_in: string, color_out: string];
@@ -37,6 +39,7 @@ export class Planet {
 	sells: typeof ResourceCargo | null;
 	color_in: string;
 	color_out: string;
+	neighbours: Planet[];
 	constructor(x: number, y: number, type_n: number) {
 		var type = planetTypes[type_n];
 		this.x = x;
@@ -50,6 +53,17 @@ export class Planet {
 	}
 	save(): [number, number, number] {
 		return [this.x, this.y, this.type];
+	}
+	dispatch(ship: Ship, departTime: number) {
+		//send the ship in a random direction
+		const dest = this.neighbours.shift() as Planet;
+		this.neighbours.push(dest);
+		ship.fromPlanet = this;
+		ship.toPlanet = dest;
+		ship.fromTime = departTime;
+		const dist = Math.hypot(this.x - dest.x, this.y - dest.y);
+		const flyTime = dist / shipBaseSpeed;
+		ship.toTime = departTime + flyTime;
 	}
 }
 

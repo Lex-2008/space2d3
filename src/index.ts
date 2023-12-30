@@ -28,7 +28,11 @@ if (location.hostname == 'localhost' || location.hostname == '127.0.0.1') {
 let my_ship = Ship.randomShip(15);
 let other_ship = Ship.randomShip(35);
 
-var gs = { star: new Star() } // GameState
+var gs = { star: new Star(), now: 0 } // GameState
+
+window.gs = gs;
+
+gs.star.addRandomShips(0);
 
 //var s = Ship.randomShip(1);
 //var m = new WalkMap(0, 0)

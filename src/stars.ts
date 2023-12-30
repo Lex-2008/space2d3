@@ -1,5 +1,7 @@
+import { shipBaseSpeed } from "./const.js";
 import { makePlanets, Planet, PlanetType } from "./planets.js";
-import { seq, randomFrom, randomInt } from "./utils.js";
+import { Ship } from "./ship.js";
+import { seq, randomFrom, randomInt, shuffle } from "./utils.js";
 
 // 1. copypaste table from https://www.cssportal.com/css3-color-names/ to vim
 // 2. :%s/^\t\([^\t]*\)\t#[^\t]*\t/['\1', /
@@ -48,6 +50,7 @@ export class Star {
 	// neighbours: Directions;
 	grid: (Star | Planet | undefined)[][];
 	planets: Planet[];
+	ships: Ship[];
 	jobs: number;
 
 	constructor(load?: StarData) {
@@ -82,6 +85,10 @@ export class Star {
 		if (!load.p) load.p = makePlanets(this.size); //from planets.js
 		this.planets = load.p.map((x) => new Planet(...x));
 		for (var planet of this.planets) {
+			// add neighbours
+			// TODO: check if can travel between them?
+			planet.neighbours = shuffle(this.planets.filter(p => p != planet));
+			// add planet to grid
 			this.grid[Math.floor(planet.x)][Math.floor(planet.y)] = planet;
 		}
 		// this.jobs = countJobs(this.planets);
@@ -96,6 +103,21 @@ export class Star {
 	// 		other.neighbours.link(direction + 180, this);
 	// 	}
 	// }
+
+	addRandomShips(now: number) {
+		this.ships = [];
+		// let i = 0, j = 0;
+		for (let i = 0; i < this.planets.length; i++) {
+			for (let j = 0; j < i; j++) {
+				// TODO: check if can travel between them?
+				let s = Ship.randomShip(15);
+				const dist = Math.hypot(this.planets[i].x - this.planets[j].x, this.planets[i].y - this.planets[j].y);
+				const flyTime = dist / shipBaseSpeed;
+				this.planets[i].dispatch(s, now - flyTime);
+				this.ships.push(s);
+			}
+		}
+	}
 
 	save(): StarData {
 		return {
