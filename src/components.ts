@@ -1,6 +1,6 @@
 import { Cargo } from "./cargo"
 import { planet_size } from "./const"
-import { draw_ships, draw_star, showDate } from "./draw"
+import { draw_planet, draw_ships, draw_star, showDate } from "./draw"
 import { GameState, gs } from "./gameState"
 import { gebi } from "./index"
 import { Planet } from "./planets"
@@ -105,14 +105,19 @@ export abstract class EngineComponent extends NormalComponent { }
 export abstract class ComputerComponent extends NormalComponent { }
 
 export class NavigationComputer extends ComputerComponent {
-    planetLI(planet: Planet, i: number) {
+    planetTr(value: { planet: Planet; i: number }) {
+        const planet = value.planet;
+        const i = value.i;
         if (planet == gs.playerShip.onPlanet) return '';
         const dist = Math.round(Math.hypot(gs.playerShip.x - planet.x, gs.playerShip.y - planet.y) * 100) / 100;
         const selected = (planet == gs.playerShip.toPlanet) ? 'checked' : '';
-        return `<li><label>
-        <input type="radio" name="NavigationComputer_to" value="${i}" ${selected}>
-        ${planet.name} (dist: ${dist})
-        </label></li>`
+        return `<tr><td>
+            <label for="NavigationComputer_to_${i}"><canvas id="NavigationComputer_canvas_${i}" width=30 height=30></canvas></label>
+        </td><td>
+            <label><input type="radio" name="NavigationComputer_to" value="${i}" id="NavigationComputer_to_${i}" ${selected}>
+            <b>${planet.name}</b> (dist: ${dist})<br>
+            ${planet.buys ? `wants: ${planet.buys.id}` : ''} ${planet.sells ? `gives: ${planet.sells.id}` : ''}
+        </label></td></tr>`
     }
     showDiv(id: string) {
         gebi('NavigationComputer_css').innerHTML = `#NavigationComputer_${id}{display:block !important}`;
@@ -123,8 +128,14 @@ export class NavigationComputer extends ComputerComponent {
             return;
         }
         this.showDiv('Select');
-        (document.querySelector('#NavigationComputer ul') as HTMLUListElement).innerHTML =
-            gs.star.planets.map(this.planetLI).join('');
+        (document.querySelector('#NavigationComputer table') as HTMLTableElement).innerHTML =
+            gs.star.planets.map((p, i) => { return { 'planet': p, 'i': i, 'dist': p.distanceTo(gs.playerShip) } }).sort((a, b) => a.dist - b.dist).map(this.planetTr).join('');
+        gs.star.planets.forEach((planet, i) => {
+            const c = document.getElementById(`NavigationComputer_canvas_${i}`) as HTMLCanvasElement;
+            if (!c) return;
+            const ctx = c.getContext("2d") as CanvasRenderingContext2D;
+            draw_planet(ctx, planet, c.width / planet_size / 2, c.width / 2, c.height / 2);
+        })
         gebi('NavigationComputer_Plot').style.display = (this.ship instanceof PlayerShip) ? 'none' : '';
         gebi('NavigationComputer_Fly').style.display = (this.ship instanceof PlayerShip) ? '' : 'none';
         gebi('NavigationComputer_Plot').onclick = () => {

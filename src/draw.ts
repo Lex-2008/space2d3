@@ -97,7 +97,7 @@ export function draw_ship(ctx: CanvasRenderingContext2D, ship: Ship, cell_size: 
     const y = (ship.y) * cell_size;
     // console.log('draw', ship.color, x, y);
     ctx.fillStyle = ship.color;
-    ctx.fillRect(x, y, 2, 2);
+    ctx.fillRect(x - 1, y - 1, 3, 3);
     if (ship instanceof PlayerShip) {
         for (let r = 1; r <= ship.componentTypes['Radar']; r++) {
             ctx.beginPath();
@@ -108,9 +108,9 @@ export function draw_ship(ctx: CanvasRenderingContext2D, ship: Ship, cell_size: 
     }
 }
 
-function draw_planet(ctx: CanvasRenderingContext2D, planet: Planet, cell_size: number) {
-    const x = (planet.x) * cell_size;
-    const y = (planet.y) * cell_size;
+export function draw_planet(ctx: CanvasRenderingContext2D, planet: Planet, cell_size: number, x?: number, y?: number) {
+    if (x === undefined) x = (planet.x) * cell_size;
+    if (y === undefined) y = (planet.y) * cell_size;
     var grd = ctx.createRadialGradient(x - 1, y - 1, 2, x, y, planet_size * cell_size);
     grd.addColorStop(0, planet.color_in);
     grd.addColorStop(1, planet.color_out);

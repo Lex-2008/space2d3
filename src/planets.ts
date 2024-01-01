@@ -1,5 +1,6 @@
 import { Food, Iron, Radioactives, ResourceCargo, Water } from "./cargo";
 import { shipBaseSpeed } from "./const";
+import { Point } from "./geometry";
 import { Ship } from "./ship";
 import { shuffle, seq } from "./utils";
 
@@ -52,6 +53,9 @@ export class Planet {
 		this.color_in = type[3];
 		this.color_out = type[4];
 		this.base = Ship.newBase(this);
+	}
+	distanceTo(p: Point) {
+		return Math.hypot(this.x - p.x, this.y - p.y);
 	}
 	save(): [number, number, number] {
 		return [this.x, this.y, this.type];
