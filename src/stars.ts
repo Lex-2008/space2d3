@@ -72,6 +72,7 @@ export class Star {
 		this.x = this.y = this.size / 2;
 		this.bright = false;
 		this.name = this.color;
+		this.ships = [];
 		if (this.size % 2 == 0) {
 			this.bright = true;
 			this.name = 'bright ' + this.name;

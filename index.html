@@ -55,7 +55,7 @@
 		</fieldset>
 		<div>
 			<fieldset>
-				<legend>Status</legend>
+				<legend>Status (day <span id="now-day"></span>: <span id="now-date"></span>)</legend>
 				<div id="status"></div>
 			</fieldset>
 			<fieldset class="component" style="width: 300px;">
@@ -66,8 +66,25 @@
 				</div>
 				<div id="Ballast">Extra weight added here to compensate <b></b> component on the other side</div>
 				<div id="Passage">Helps you walk around the ship. <br> Hint: use WASD to walk around. If it doesn't work - click here, change keyboard language to English or disable CapsLock</div>
-				<div id="Airlock">Lets you get from one ship to another. You can also <button id="Airlock_Detach">Detach</button> your ship from theirs. </div>
+				<div id="Airlock">Lets you get from one ship to another. <div id="Airlock_Locked">You need to have a planned trip before you can undock.</div>
+					<div id="Airlock_UnLocked"> You can <button id="Airlock_Detach">Undock</button> to start your trip. </div>
+				</div>
 				<div id="Radar">Here you can see your current star system: <canvas width="296" height="296" style="background: black; border: 2px groove ButtonBorder;"></canvas>
+				</div>
+				<div id="NavigationComputer">
+					<style>
+						#NavigationComputer>div {
+							display: none
+						}
+					</style>
+					<style id="NavigationComputer_css"></style>
+					<div id="NavigationComputer_Flying"> Sorry, you can't change your trip in the middle of the journey - for now, at least! </div>
+					<div id="NavigationComputer_Select">Select a planet to travel to: <ul></ul>
+						<button id="NavigationComputer_Fly">Depart there</button>
+						<button id="NavigationComputer_Plot">Plan course there</button>
+					</div>
+					<div id="NavigationComputer_Detach"> You have planned a trip. Now go to Airlock to detach from this base and start the trip! </div>
+					<div id="NavigationComputer_Departed"> You've started your journey! </div>
 				</div>
 			</fieldset>
 		</div>

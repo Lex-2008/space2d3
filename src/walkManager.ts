@@ -6,7 +6,9 @@ export class walkManager {
     walker: Walker;
     oneShipData: { x0: number; x1: number; y0: number; y1: number; w: number; h: number; };
     twoShipsData: { ax0: number; ay0: number; airlock_x: number; airlock_y: number; bx0: number; by0: number; max_x: number; max_y: number; }
+    hasSecondShip = false;
     myShip: Ship;
+    secondShip: Ship;
 
     putTwoShips(a: Ship, b: Ship) {
         const a_sz = a.gridSize;
@@ -17,6 +19,9 @@ export class walkManager {
         const airlock_y = a_sz.h + 1;
         const max_x = airlock_x + Math.max(a_sz.w - a_lock, b_sz.w - b_lock);
         const max_y = airlock_y + b_sz.h + 1;
+        this.myShip = b;
+        this.secondShip = a;
+        this.hasSecondShip = true;
         this.twoShipsData = {
             'ax0': airlock_x - a_lock + a_sz.x0,
             'ay0': a_sz.y0 + 1,
@@ -44,6 +49,7 @@ export class walkManager {
     }
 
     drawMyShip(ctx: CanvasRenderingContext2D) {
+        this.hasSecondShip = false;
         const gs = this.oneShipData = this.myShip.gridSize;
         const m = this.walker.map = new WalkMap(gs.w + 1, gs.h + 1);
         ctx.canvas.width = componentSize * (gs.w + 2);
@@ -52,17 +58,35 @@ export class walkManager {
     }
 
     detach(ctx: CanvasRenderingContext2D) {
-        // assuming my ship is lower ship and player stands in airlock
-        // player coordinates relative to ship
-        const player_x = this.walker.x - this.twoShipsData.bx0;
-        const player_y = this.walker.y - this.twoShipsData.by0 + 1;
-        this.drawMyShip(ctx);
-        //this.walker.jumpTo(this.oneShipData.x0 + 1 + player_x, this.oneShipData.y0 + 1 + player_y),
-        this.walker.jumpTo(this.oneShipData.x0 + 1 + player_x, this.oneShipData.y0 + player_y);
-        this.walker.goDn(true);
+        if (!this.hasSecondShip) return false;
+        let moveDnFromAirlock = false;
+        if (this.walker.y == this.twoShipsData.airlock_y) {
+            //player stands in airlock
+            // assume my ship is lower ship
+            this.walker.y++;
+            moveDnFromAirlock = true;
+        }
+        this.secondShip.playerOnShip = (this.walker.y < this.twoShipsData.airlock_y);
+        this.myShip.playerOnShip = (this.walker.y > this.twoShipsData.airlock_y);
+        if (this.walker.y < this.twoShipsData.airlock_y) {
+            // player on top ("a") ship
+            // TODO
+        } else {
+            // player on bottom ("b") ship, which is also my ship
+            const player_x = this.myShip.playerX = this.walker.x - this.twoShipsData.bx0;
+            const player_y = this.myShip.playerY = this.walker.y - this.twoShipsData.by0;
+            this.drawMyShip(ctx);
+            if (moveDnFromAirlock) {
+                this.walker.jumpTo(this.oneShipData.x0 + 1 + player_x, this.oneShipData.y0 + player_y, false);
+                this.walker.goDn(true);
+            } else {
+                this.walker.jumpTo(this.oneShipData.x0 + 1 + player_x, this.oneShipData.y0 + 1 + player_y, false);
+            }
+        }
     }
 
     attach(ctx: CanvasRenderingContext2D, otherShip: Ship) {
+        if (this.hasSecondShip) return false;
         // player coordinates relative to ship
         const player_x = this.walker.x - 1 - this.oneShipData.x0;
         const player_y = this.walker.y - 1 - this.oneShipData.y0;

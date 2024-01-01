@@ -53,21 +53,11 @@ export class Walker {
     goLt() { this.goX(-1); this.human.style.transform = 'rotate(-90deg)' }
     goRt() { this.goX(1); this.human.style.transform = 'rotate(90deg)' }
 
-    jumpTo(x: number, y: number, x0?: number, y0?: number) {
-        if (x0 !== undefined && y0 !== undefined) {
-            // this.x = x0;
-            // this.y = y0;
-            // this.reposition(true);
-            // this.x = x;
-            // this.y = y;
-            // this.reposition();
-            // this.onEnter(this.map.map[x][y].component);
-        } else {
-            this.x = x;
-            this.y = y;
-            this.reposition(true);
-            this.onEnter(this.map.map[x][y].component);
-        }
+    jumpTo(x: number, y: number, callOnEnter = true) {
+        this.x = x;
+        this.y = y;
+        this.reposition(true);
+        if (callOnEnter) this.onEnter(this.map.map[x][y].component);
     }
 
     reposition(fast?: boolean) {

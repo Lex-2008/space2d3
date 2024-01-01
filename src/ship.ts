@@ -1,6 +1,7 @@
 import { Cargo, UsefulCargo } from "./cargo"
-import { Ballast, CargoBay, Component, NormalComponent } from "./components"
-import { shipColors } from "./const"
+import { Ballast, CargoBay, Component, NavigationComputer, NormalComponent, Radar } from "./components"
+import { shipBaseSpeed, shipColors } from "./const"
+import { Point } from "./geometry"
 import { Planet } from "./planets"
 import { fromJSON, types } from "./saveableType"
 import { randomFrom, randomInt } from "./utils"
@@ -25,18 +26,28 @@ export class Ship {
     // position in space
     spaceX: number
     spaceY: number
-    fromPlanet: Planet
+    fromPoint: Point
     toPlanet: Planet
     fromTime: number
     toTime: number
 
-    updateSpaceXY(now: number) {
-        while (now >= this.toTime) {
+    updateSpaceXY(now: number, allowDispatch = true) {
+        while (now >= this.toTime && allowDispatch) {
             this.toPlanet.dispatch(this, this.toTime);
         }
         const flightProgress = (now - this.fromTime) / (this.toTime - this.fromTime);
-        this.spaceX = this.fromPlanet.x + (this.toPlanet.x - this.fromPlanet.x) * flightProgress;
-        this.spaceY = this.fromPlanet.y + (this.toPlanet.y - this.fromPlanet.y) * flightProgress;
+        this.spaceX = this.fromPoint.x + (this.toPlanet.x - this.fromPoint.x) * flightProgress;
+        this.spaceY = this.fromPoint.y + (this.toPlanet.y - this.fromPoint.y) * flightProgress;
+    }
+
+    planTrip(fromPoint: Point, toPlanet: Planet, fromTime: number) {
+        this.fromPoint = fromPoint;
+        this.toPlanet = toPlanet;
+        this.fromTime = fromTime;
+        const dist = Math.hypot(fromPoint.x - toPlanet.x, fromPoint.y - toPlanet.y);
+        const flyTime = dist / shipBaseSpeed;
+        this.toTime = fromTime + flyTime;
+        // console.log('planTrip', fromTime, flyTime, dist, fromPlanet.name, toPlanet.name);
     }
 
     toJSON() {
@@ -132,11 +143,11 @@ export class Ship {
         }
     }
 
-    static randomShip(size: number) {
+    static randomShip(size: number, ship?: Ship) {
         const rowCount = 4
         const componentTypes = Object.values(types).filter(x => (x.prototype instanceof NormalComponent)) as Array<typeof Component>
         const cargoTypes = Object.values(types).filter(x => (x.prototype instanceof Cargo)) as Array<typeof Cargo>
-        const ship = new Ship()
+        if (ship === undefined) ship = new Ship();
         ship.color = randomFrom(shipColors);
         ship.rows = [[], [], [], []]
         ship.offsets = [0, 0, 0, 0]
@@ -144,6 +155,7 @@ export class Ship {
             let row = randomInt(0, rowCount - 1)
             let componentType = randomFrom(componentTypes) as unknown as new () => Component
             let component = new componentType()
+            component.ship = ship;
             if (component instanceof CargoBay) {
                 let cargos = randomInt(0, 4)
                 for (let j = 0; j < cargos; j++) {
@@ -156,6 +168,17 @@ export class Ship {
         for (let i = 0; i < ship.rows.length; i++) {
             ship.offsets[i] = randomInt(0, ship.rows[i].length)
         }
+        ship.balanceBallast()
+        return ship
+    }
+
+    static newBase(planet: Planet) {
+        const ship = new Ship();
+        ship.color = 'black';
+        ship.rows = [[], []];
+        ship.offsets = [0, 0];
+        ship.rows[0].push(new NavigationComputer())
+        ship.rows[1].push(new Radar())
         ship.balanceBallast()
         return ship
     }

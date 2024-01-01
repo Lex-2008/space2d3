@@ -1,10 +1,11 @@
-import { Airlock, Component, Passage } from "./components"
+import { Airlock, Component, ComputerComponent, Passage } from "./components"
 import { WalkMap } from "./walker";
 import { Ship, xywh } from "./ship";
 import { Planet } from "./planets";
 import { Star } from "./stars";
 import { planet_size } from "./const";
 import { gebi } from "./index";
+import { gs } from "./gameState";
 
 export const componentSize = 50
 export const componentOffset = 5
@@ -20,7 +21,11 @@ function drawComponent(ctx: CanvasRenderingContext2D, x: number, y: number, ship
     ctx.stroke();
     ctx.textBaseline = 'top';
     ctx.fillText(component.cellName || '', x * componentSize + componentOffset, y * componentSize)
-    ctx.fillText(component.typename[0], x * componentSize + componentOffset, y * componentSize + 16)
+    if (component instanceof ComputerComponent) {
+        ctx.fillText(component.typename[0] + 'C', x * componentSize + componentOffset, y * componentSize + 16)
+    } else {
+        ctx.fillText(component.typename[0], x * componentSize + componentOffset, y * componentSize + 16)
+    }
     if (map) {
         map.map[x][y].canBeHere = true
         map.map[x][y].canGoX = ship.isAlien
@@ -88,7 +93,6 @@ export function drawShip(ctx: CanvasRenderingContext2D, x0, y0, ship: Ship, map?
 
 export function draw_ship(ctx: CanvasRenderingContext2D, ship: Ship, cell_size: number, ship_size: number, now: number) {
     // draw ship ON STAR MAP
-    ship.updateSpaceXY(now);
     const x = (ship.spaceX) * cell_size;
     const y = (ship.spaceY) * cell_size;
     // console.log('draw', ship.color, x, y);
@@ -143,15 +147,14 @@ export function draw_star(ctx: CanvasRenderingContext2D, star: Star, now?: numbe
         }
 }
 
-export function showTime() {
+export function showDate(today: number) {
     // console.log('showTime', now);
-    // gebi('now').innerText = Math.round(now * 100) / 100;
+    gebi('now-day').innerText = (today + 1).toString();
     // const date = Math.floor(now);
-    const now = window.gs.now;
-    const year = Math.floor(now / 300) + 3000;
-    const month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov'][Math.floor((now % 300) / 30)];
-    const day = Math.floor(now % 30) + 1;
-    gebi('now').innerText = `${day} ${month} ${year}`;
+    const year = Math.floor(today / 300) + 3000;
+    const month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov'][Math.floor((today % 300) / 30)];
+    const day = Math.floor(today % 30) + 1;
+    gebi('now-date').innerText = `${day} ${month} ${year}`;
     // const time = now % 1;
     // gebi('now-hr').innerText = Math.floor(time * 25);
     // gebi('now-min').innerText = Math.round((time * 25 * 50) % 25);

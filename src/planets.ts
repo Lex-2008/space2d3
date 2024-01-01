@@ -40,6 +40,7 @@ export class Planet {
 	color_in: string;
 	color_out: string;
 	neighbours: Planet[];
+	base: Ship;
 	constructor(x: number, y: number, type_n: number) {
 		var type = planetTypes[type_n];
 		this.x = x;
@@ -50,6 +51,7 @@ export class Planet {
 		this.sells = type[2];
 		this.color_in = type[3];
 		this.color_out = type[4];
+		this.base = Ship.newBase(this);
 	}
 	save(): [number, number, number] {
 		return [this.x, this.y, this.type];
@@ -58,12 +60,7 @@ export class Planet {
 		//send the ship in a random direction
 		const dest = this.neighbours.shift() as Planet;
 		this.neighbours.push(dest);
-		ship.fromPlanet = this;
-		ship.toPlanet = dest;
-		ship.fromTime = departTime;
-		const dist = Math.hypot(this.x - dest.x, this.y - dest.y);
-		const flyTime = dist / shipBaseSpeed;
-		ship.toTime = departTime + flyTime;
+		ship.planTrip(this, dest, departTime);
 	}
 }
 
