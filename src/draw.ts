@@ -1,4 +1,4 @@
-import { Airlock, Component, ComputerComponent, Passage } from "./components"
+import { Airlock, Cloak, Component, ComputerComponent, Passage } from "./components"
 import { WalkMap } from "./walker";
 import { Ship, xywh } from "./ship";
 import { Planet } from "./planets";
@@ -6,6 +6,7 @@ import { Star } from "./stars";
 import { planet_size } from "./const";
 import { gebi } from "./index";
 import { gs } from "./gameState";
+import { PlayerShip } from "./playerShip";
 
 export const componentSize = 50
 export const componentOffset = 5
@@ -21,11 +22,10 @@ function drawComponent(ctx: CanvasRenderingContext2D, x: number, y: number, ship
     ctx.stroke();
     ctx.textBaseline = 'top';
     ctx.fillText(component.cellName || '', x * componentSize + componentOffset, y * componentSize)
-    if (component instanceof ComputerComponent) {
-        ctx.fillText(component.typename[0] + 'C', x * componentSize + componentOffset, y * componentSize + 16)
-    } else {
-        ctx.fillText(component.typename[0], x * componentSize + componentOffset, y * componentSize + 16)
-    }
+    let componentTitle = component.typename[0];
+    if (component instanceof ComputerComponent) componentTitle += 'C';
+    if (component instanceof Cloak) componentTitle += 'l';
+    ctx.fillText(componentTitle, x * componentSize + componentOffset, y * componentSize + 16);
     if (map) {
         map.map[x][y].canBeHere = true
         map.map[x][y].canGoX = ship.isAlien
@@ -91,17 +91,21 @@ export function drawShip(ctx: CanvasRenderingContext2D, x0, y0, ship: Ship, map?
     drawPassage(ctx, x0, y0, ship, map);
 }
 
-export function draw_ship(ctx: CanvasRenderingContext2D, ship: Ship, cell_size: number, ship_size: number, now: number) {
+export function draw_ship(ctx: CanvasRenderingContext2D, ship: Ship, cell_size: number) {
     // draw ship ON STAR MAP
-    const x = (ship.spaceX) * cell_size;
-    const y = (ship.spaceY) * cell_size;
+    const x = (ship.x) * cell_size;
+    const y = (ship.y) * cell_size;
     // console.log('draw', ship.color, x, y);
     ctx.fillStyle = ship.color;
     ctx.fillRect(x, y, 2, 2);
-    // ctx.beginPath();
-    // ctx.arc(x, y, cell_size, 0, 7);
-    // ctx.strokeStyle = 'red';
-    // ctx.stroke();
+    if (ship instanceof PlayerShip) {
+        for (let r = 1; r <= ship.componentTypes['Radar']; r++) {
+            ctx.beginPath();
+            ctx.arc(x, y, cell_size * r, 0, 7);
+            ctx.strokeStyle = 'red';
+            ctx.stroke();
+        }
+    }
 }
 
 function draw_planet(ctx: CanvasRenderingContext2D, planet: Planet, cell_size: number) {
@@ -117,7 +121,7 @@ function draw_planet(ctx: CanvasRenderingContext2D, planet: Planet, cell_size: n
 }
 
 
-export function draw_star(ctx: CanvasRenderingContext2D, star: Star, now?: number) {
+export function draw_star(ctx: CanvasRenderingContext2D, star: Star) {
     //calc_sizes(ctx, star);
     const max_size = ctx.canvas.width;
     const cell_size = max_size / (star.size);
@@ -140,11 +144,15 @@ export function draw_star(ctx: CanvasRenderingContext2D, star: Star, now?: numbe
     for (let planet of star.planets) {
         draw_planet(ctx, planet, cell_size);
     }
+}
 
-    if (now !== undefined)
-        for (let ship of star.ships) {
-            draw_ship(ctx, ship, cell_size, 0, now);
-        }
+export function draw_ships(ctx: CanvasRenderingContext2D, ships: Ship[], myRadars: number) {
+    const max_size = ctx.canvas.width;
+    const cell_size = max_size / gs.star.size;
+    for (let ship of ships) {
+        if (ship instanceof PlayerShip || ship.seenBy(gs.playerShip, myRadars))
+            draw_ship(ctx, ship, cell_size);
+    }
 }
 
 export function showDate(today: number) {

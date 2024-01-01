@@ -1,6 +1,6 @@
 import { Cargo } from "./cargo"
 import { planet_size } from "./const"
-import { draw_star, showDate } from "./draw"
+import { draw_ships, draw_star, showDate } from "./draw"
 import { GameState, gs } from "./gameState"
 import { gebi } from "./index"
 import { Planet } from "./planets"
@@ -81,24 +81,24 @@ export class Radar extends NormalComponent {
     onEnter(gs: GameState) {
         const c = document.querySelector('#Radar canvas') as HTMLCanvasElement
         const ctx = c.getContext("2d") as CanvasRenderingContext2D;
-        gs.lastTickTimestamp = performance.now();
-        draw_star(ctx, gs.star, gs.now);
-        window.requestAnimationFrame(drawRadar);
+        drawRadar();
     }
 }
 addType(Radar, 'Radar');
 
-function drawRadar(ts: number) {
+function drawRadar(ts?: number) {
     const c = document.querySelector('#Radar canvas') as HTMLCanvasElement
     if (c.offsetParent === null) return;
     const ctx = c.getContext("2d") as CanvasRenderingContext2D;
-    if (!gs.tick(ts)) return;
+    if (gs.tick(ts)) window.requestAnimationFrame(drawRadar);
     // TODO: draw planets only once, and redraw only ships
     // (maybe on another canvas)
-    draw_star(ctx, gs.star, gs.now);
-    window.requestAnimationFrame(drawRadar);
-    // showTime(gs.now);
+    draw_star(ctx, gs.star);
+    draw_ships(ctx, gs.star.ships, gs.playerShip.componentTypes['Radar']);
 }
+
+export class Cloak extends NormalComponent { }
+addType(Cloak, 'Cloak');
 
 export abstract class EngineComponent extends NormalComponent { }
 
@@ -107,7 +107,7 @@ export abstract class ComputerComponent extends NormalComponent { }
 export class NavigationComputer extends ComputerComponent {
     planetLI(planet: Planet, i: number) {
         if (planet == gs.playerShip.onPlanet) return '';
-        const dist = Math.round(Math.hypot(gs.playerShip.spaceX - planet.x, gs.playerShip.spaceY - planet.y) * 100) / 100;
+        const dist = Math.round(Math.hypot(gs.playerShip.x - planet.x, gs.playerShip.y - planet.y) * 100) / 100;
         const selected = (planet == gs.playerShip.toPlanet) ? 'checked' : '';
         return `<li><label>
         <input type="radio" name="NavigationComputer_to" value="${i}" ${selected}>

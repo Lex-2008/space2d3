@@ -34,7 +34,7 @@ let my_ship = PlayerShip.randomShip(15);
 window.gs = gs;
 
 gs.star = new Star();
-// gs.star.addRandomShips(0);
+gs.star.addRandomShips(0);
 gs.star.ships.push(my_ship);
 gs.playerShip = my_ship;
 

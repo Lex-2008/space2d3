@@ -18,14 +18,15 @@ export class Ship {
     isAlien: boolean = false
     rows: Array<Array<Component>> = []
     offsets: Array<number> = []
+    componentTypes: { [typeName: string]: number }
     // next 4 are yet unused, to be used by detach/attach logic
     isPlayerShip: boolean = false
     playerOnShip: boolean = false
     playerX: number
     playerY: number
     // position in space
-    spaceX: number
-    spaceY: number
+    x: number
+    y: number
     fromPoint: Point
     toPlanet: Planet
     fromTime: number
@@ -36,8 +37,8 @@ export class Ship {
             this.toPlanet.dispatch(this, this.toTime);
         }
         const flightProgress = (now - this.fromTime) / (this.toTime - this.fromTime);
-        this.spaceX = this.fromPoint.x + (this.toPlanet.x - this.fromPoint.x) * flightProgress;
-        this.spaceY = this.fromPoint.y + (this.toPlanet.y - this.fromPoint.y) * flightProgress;
+        this.x = this.fromPoint.x + (this.toPlanet.x - this.fromPoint.x) * flightProgress;
+        this.y = this.fromPoint.y + (this.toPlanet.y - this.fromPoint.y) * flightProgress;
     }
 
     planTrip(fromPoint: Point, toPlanet: Planet, fromTime: number) {
@@ -47,7 +48,22 @@ export class Ship {
         const dist = Math.hypot(fromPoint.x - toPlanet.x, fromPoint.y - toPlanet.y);
         const flyTime = dist / shipBaseSpeed;
         this.toTime = fromTime + flyTime;
+        this.updateSpaceXY(this.fromTime);
         // console.log('planTrip', fromTime, flyTime, dist, fromPlanet.name, toPlanet.name);
+    }
+
+    countComponents() {
+        const all = this.rows.flat();
+        this.componentTypes = {};
+        for (let component of all) {
+            if (this.componentTypes[component.typename]) this.componentTypes[component.typename]++;
+            else this.componentTypes[component.typename] = 1;
+        }
+    }
+
+    seenBy(pos: Point, myRadars: number) {
+        const dist = Math.hypot(pos.x - this.x, pos.y - this.y);
+        return myRadars >= dist + this.componentTypes['Cloak'];
     }
 
     toJSON() {
@@ -169,6 +185,7 @@ export class Ship {
             ship.offsets[i] = randomInt(0, ship.rows[i].length)
         }
         ship.balanceBallast()
+        ship.countComponents()
         return ship
     }
 
@@ -180,6 +197,7 @@ export class Ship {
         ship.rows[0].push(new NavigationComputer())
         ship.rows[1].push(new Radar())
         ship.balanceBallast()
+        ship.countComponents()
         return ship
     }
 

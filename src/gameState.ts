@@ -64,8 +64,8 @@ export class GameState {
     }
     arrive() {
         this.playerShip.onPlanet = this.playerShip.toPlanet;
-        this.playerShip.spaceX = this.playerShip.onPlanet.x;
-        this.playerShip.spaceY = this.playerShip.onPlanet.y;
+        this.playerShip.x = this.playerShip.onPlanet.x;
+        this.playerShip.y = this.playerShip.onPlanet.y;
         this.playerShip.flying = false;
         this.timeFlies = false;
         this.walkManager.attach(this.walkCTX, this.playerShip.onPlanet.base);
