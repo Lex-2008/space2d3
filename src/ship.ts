@@ -47,7 +47,7 @@ export class Ship {
         this.fromPoint = fromPoint;
         this.toPlanet = toPlanet;
         this.fromTime = fromTime;
-        const dist = Math.hypot(fromPoint.x - toPlanet.x, fromPoint.y - toPlanet.y);
+        const dist = toPlanet.distanceTo(fromPoint);
         const flyTime = dist / shipBaseSpeed;
         this.toTime = fromTime + flyTime;
         this.updateSpaceXY(this.fromTime);

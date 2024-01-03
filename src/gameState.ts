@@ -63,6 +63,7 @@ export class GameState {
         this.playerShip.flying = true;
         this.playerShip.onPlanet = null;
         this.walkManager.detach(this.walkCTX);
+        this.lastDate = -1;
         this.tick();
     }
     arrive() {

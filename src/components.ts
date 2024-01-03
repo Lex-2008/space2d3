@@ -1,5 +1,5 @@
 import { Cargo, ResourceCargo } from "./cargo"
-import { planet_size } from "./const"
+import { planet_size, shipBaseSpeed } from "./const"
 import { draw_planet, draw_ships, draw_star, showDate } from "./draw"
 import { GameState, gs } from "./gameState"
 import { gebi } from "./index"
@@ -113,13 +113,13 @@ export class NavigationComputer extends ComputerComponent {
         const planet = value.planet;
         const i = value.i;
         if (planet == gs.playerShip.onPlanet) return '';
-        const dist = Math.round(Math.hypot(gs.playerShip.x - planet.x, gs.playerShip.y - planet.y) * 100) / 100;
+        const time = Math.ceil(planet.distanceTo(gs.playerShip) / shipBaseSpeed);
         const selected = (planet == gs.playerShip.toPlanet) ? 'checked' : '';
         return `<tr><td>
             <label for="NavigationComputer_to_${i}"><canvas id="NavigationComputer_canvas_${i}" width=30 height=30></canvas></label>
         </td><td>
             <label><input type="radio" name="NavigationComputer_to" value="${i}" id="NavigationComputer_to_${i}" ${selected}>
-            <b>${planet.name}</b> (dist: ${dist})<br>
+            <b>${planet.name}</b> (${time}d)<br>
             ${planet.buys ? `wants: ${planet.buys.id}` : ''} ${planet.sells ? `gives: ${planet.sells.id}` : ''}
         </label></td></tr>`
     }
