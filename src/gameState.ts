@@ -61,6 +61,7 @@ export class GameState {
         // }
         this.timeFlies = true;
         this.walkManager.detach(this.walkCTX);
+        this.tick();
     }
     arrive() {
         this.playerShip.onPlanet = this.playerShip.toPlanet;
