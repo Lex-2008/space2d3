@@ -1,6 +1,8 @@
+import { ResourceCargo } from "./cargo.js";
 import { planet_size, shipBaseSpeed } from "./const.js";
 import { lineCrossesObj } from "./geometry.js";
 import { makePlanets, Planet, PlanetType } from "./planets.js";
+import { types } from "./saveableType.js";
 import { Ship } from "./ship.js";
 import { seq, randomFrom, randomInt, shuffle } from "./utils.js";
 
@@ -52,7 +54,6 @@ export class Star {
 	grid: (Star | Planet | undefined)[][];
 	planets: Planet[];
 	ships: Ship[];
-	jobs: number;
 
 	constructor(load?: StarData) {
 		if (!load) {
@@ -93,6 +94,7 @@ export class Star {
 			this.grid[Math.floor(planet.x)][Math.floor(planet.y)] = planet;
 		}
 		// this.jobs = countJobs(this.planets);
+		this.setRatios();
 	}
 
 	// link(other: Star, direction: number | Direction) {
@@ -113,6 +115,27 @@ export class Star {
 		}
 		return false;
 	};
+
+	computeRareResources(planets?: Planet[]) {
+		if (planets === undefined) planets = this.planets;
+		const producedResources = planets.map(planet => planet.sells);
+		const rareResources = Object.values(types).filter(resource => resource instanceof ResourceCargo && !producedResources.includes(resource)) as (typeof ResourceCargo)[];
+		const abundantResources = planets.filter(planet => planet.buys === null).map(planet => planet.sells) as (typeof ResourceCargo)[];
+		return {
+			'exotic': rareResources,
+			'abundant': abundantResources
+		}
+	}
+
+	setRatios() {
+		const ar = this.computeRareResources();
+		for (let planet of this.planets) {
+			if (planet.buys === null) planet.ratio = 2; //gives for free
+			else if (ar.abundant.includes(planet.buys)) planet.ratio = 1;
+			else if (ar.exotic.includes(planet.buys)) planet.ratio = 2;
+			else planet.ratio = 1.4;
+		}
+	}
 
 	addRandomShips(now: number) {
 		this.ships = [];

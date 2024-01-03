@@ -19,7 +19,7 @@ const planetTypes = (function () {
 	var ret: PlanetType[] = [
 		['ocean', null, Water, 'navy', 'blue'],
 		//['dry', Water, null, 'blue', 'white'],
-		['mining', null, Iron, 'olive', 'yellow'],
+		//['mining', null, Iron, 'olive', 'yellow'],
 		//['populated', Food, null, 'green', 'lime'],
 	];
 
@@ -37,7 +37,8 @@ export class Planet {
 	type: number;
 	name: string;
 	buys: typeof ResourceCargo | null;
-	sells: typeof ResourceCargo | null;
+	sells: typeof ResourceCargo;
+	ratio: number; //how many 'sells' resource planet gives for 1 of 'buys' resource
 	color_in: string;
 	color_out: string;
 	neighbours: Planet[];

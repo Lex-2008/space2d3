@@ -1,6 +1,6 @@
-import { Cargo, UsefulCargo } from "./cargo"
-import { Ballast, CargoBay, Component, NavigationComputer, NormalComponent, Radar } from "./components"
-import { shipBaseSpeed, shipColors } from "./const"
+import { Cargo, UsefulCargo, isCargoType } from "./cargo"
+import { Ballast, CargoBay, Cloak, Component, NavigationComputer, NormalComponent, Radar, TradingComputer, isCargoBay, isComponentType } from "./components"
+import { cargoPerCargoBay, shipBaseSpeed, shipColors } from "./const"
 import { Point } from "./geometry"
 import { Planet } from "./planets"
 import { fromJSON, types } from "./saveableType"
@@ -19,6 +19,8 @@ export class Ship {
     rows: Array<Array<Component>> = []
     offsets: Array<number> = []
     componentTypes: { [typeName: string]: number }
+    cargoTypes: { [typeName: string]: number }
+    freeCargo: number
     // next 4 are yet unused, to be used by detach/attach logic
     isPlayerShip: boolean = false
     playerOnShip: boolean = false
@@ -53,17 +55,63 @@ export class Ship {
     }
 
     countComponents() {
-        const all = this.rows.flat();
         this.componentTypes = {};
-        for (let component of all) {
-            if (this.componentTypes[component.typename]) this.componentTypes[component.typename]++;
-            else this.componentTypes[component.typename] = 1;
+        const x = Object.values(types).filter(isComponentType).forEach(
+            type => this.componentTypes[type.id] = 0);
+        const components = this.rows.flat();
+        for (let component of components) {
+            this.componentTypes[component.typename]++;
+        }
+    }
+
+    countCargo() {
+        const allCargoBays = this.rows.flat().filter(isCargoBay);
+        this.freeCargo = 0;
+        this.cargoTypes = {};
+        Object.values(types).filter(isCargoType).forEach(
+            type => this.cargoTypes[type.id] = 0);
+        for (let cargoBay of allCargoBays) {
+            this.freeCargo += cargoPerCargoBay - cargoBay.cargo.length;
+            for (let cargo of cargoBay.cargo) {
+                this.cargoTypes[cargo.typename]++;
+                // console.log(`countCargo found ${cargo.typename}, ${this.cargoTypes[cargo.typename]} at ${cargoBay.cellName}`)
+            }
+        }
+    }
+
+    getCargo(kind: typeof Cargo, amount: number) {
+        // NOTE: can't take more than we have
+        if (amount > this.cargoTypes[kind.id]) return false;
+        this.cargoTypes[kind.id] -= amount;
+        this.freeCargo += amount;
+        const allCargoBays = this.rows.flat().filter(isCargoBay).filter(cargoBay => cargoBay.cargo.length);
+        // TODO: sort
+        for (let cargoBay of allCargoBays) {
+            // filter out up to _amount_ items from cargo bays
+            // x=2;console.log([1,2,1,3,1,4,1,5].filter(v=>!(v==1&&x-->0)));
+            cargoBay.cargo = cargoBay.cargo.filter(cargo => !(cargo instanceof kind && amount-- > 0));
+            if (amount <= 0) return true;
+        }
+    }
+
+    putCargo(kind: typeof Cargo, amount: number) {
+        if (amount > this.freeCargo) return false;
+        this.cargoTypes[kind.id] += amount;
+        this.freeCargo -= amount;
+        const allCargoBays = this.rows.flat().filter(isCargoBay).filter(cargoBay => cargoBay.cargo.length < cargoPerCargoBay);
+        // TODO: sort
+        for (let cargoBay of allCargoBays) {
+            while (amount > 0 && cargoBay.cargo.length < cargoPerCargoBay) {
+                cargoBay.cargo.push(new (kind as unknown as new () => Cargo)());
+                amount--;
+            }
+            if (amount <= 0) return true;
         }
     }
 
     seenBy(pos: Point, myRadars: number) {
         const dist = Math.hypot(pos.x - this.x, pos.y - this.y);
-        return myRadars >= dist + this.componentTypes['Cloak'];
+        return myRadars >= dist + this.componentTypes[Cloak.id];
     }
 
     toJSON() {
@@ -173,7 +221,7 @@ export class Ship {
             let component = new componentType()
             component.ship = ship;
             if (component instanceof CargoBay) {
-                let cargos = randomInt(0, 4)
+                let cargos = randomInt(0, cargoPerCargoBay);
                 for (let j = 0; j < cargos; j++) {
                     let cargoType = randomFrom(cargoTypes) as unknown as new () => Cargo
                     component.cargo.push(new cargoType())
@@ -196,6 +244,7 @@ export class Ship {
         ship.offsets = [0, 0];
         ship.rows[0].push(new NavigationComputer())
         ship.rows[1].push(new Radar())
+        ship.rows[1].push(new TradingComputer())
         ship.balanceBallast()
         ship.countComponents()
         return ship

@@ -60,6 +60,8 @@ export class GameState {
         //     this.playerShip.fromPlanet = this.playerShip.onPlanet;
         // }
         this.timeFlies = true;
+        this.playerShip.flying = true;
+        this.playerShip.onPlanet = null;
         this.walkManager.detach(this.walkCTX);
         this.tick();
     }

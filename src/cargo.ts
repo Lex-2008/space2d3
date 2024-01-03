@@ -1,6 +1,7 @@
 import { SaveableObject, addType } from './saveableType'
 
 export abstract class Cargo extends SaveableObject { }
+export function isCargoType(type: typeof SaveableObject): type is typeof Cargo { return type.prototype instanceof Cargo };
 
 export abstract class UsefulCargo extends Cargo { }
 
