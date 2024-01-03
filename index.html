@@ -40,22 +40,17 @@
 	<style id="currentComponent"></style>
 </head>
 <body>
-	<div style="display: flex;">
+	<div style="display: flex; height: 500px;">
 		<fieldset style="width: 154px;">
-			<legend>Your Ship</legend>
-			<!-- <div style="text-align: center;">
-				<button id="save">Save Ship</button>
-				<button id="load">Load Ship</button>
-				<button id="random">Generate Random</button>
-			</div> -->
-			<div id="canvasBox" style="position: relative; display:flex; align-items: center; justify-content: center; width: 200px; height: 200px; overflow: hidden; background: black; border: 2px groove ButtonBorder;">
+			<legend>day <span id="now-day"></span> (<span id="now-date"></span>)</legend>
+			<div id="canvasBox" style="position: relative; display:flex; align-items: center; justify-content: center; width: 200px; height: 100%; overflow: hidden; background: black; border: 2px groove ButtonBorder;">
 				<canvas id="myCanvas" style="position: absolute; transition: all 0.166s cubic-bezier(0,.5,.8,.8) 0s; transition-property: top,left;"></canvas>
 				<span id="human" style="font-family:sans;transition: transform 0.166s linear 0s;">A</span>
 			</div>
 		</fieldset>
 		<div>
 			<fieldset>
-				<legend>Status (day <span id="now-day"></span>: <span id="now-date"></span>)</legend>
+				<legend>Status</legend>
 				<div id="status"></div>
 			</fieldset>
 			<fieldset class="component" style="width: 300px;">
