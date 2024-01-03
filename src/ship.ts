@@ -241,10 +241,12 @@ export class Ship {
         const ship = new Ship();
         ship.color = 'black';
         ship.rows = [[], []];
-        ship.offsets = [0, 0];
-        ship.rows[0].push(new NavigationComputer())
-        ship.rows[1].push(new Radar())
-        ship.rows[1].push(new TradingComputer())
+        ship.rows[randomInt(0, 1)].push(new NavigationComputer())
+        ship.rows[randomInt(0, 1)].push(new Radar())
+        ship.rows[randomInt(0, 1)].push(new TradingComputer())
+        ship.offsets = [
+            randomInt(0, ship.rows[0].length),
+            randomInt(0, ship.rows[1].length)];
         ship.balanceBallast()
         ship.countComponents()
         return ship
