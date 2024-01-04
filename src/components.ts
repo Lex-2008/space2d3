@@ -198,7 +198,7 @@ export class TradingComputer extends ComputerComponent {
         const slider = gebi('TradingComputer_give_slider') as HTMLInputElement;
         gebi('TradingComputer_give_type').innerText = planet.buys.id;
         gebi('TradingComputer_get_type').innerText = planet.sells.id;
-        slider.max = slider.value = gs.playerShip.cargoTypes[planet.buys.id].toString();
+        slider.value = slider.max = gs.playerShip.cargoTypes[planet.buys.id].toString();
         slider.style.display = gs.playerShip.cargoTypes[planet.buys.id] == 1 ? 'none' : '';
         slider.onchange = () => {
             const giveAmount = parseInt(slider.value);
