@@ -79,6 +79,11 @@ export class Ship {
         }
     }
 
+    addComponent(component: Component, row: number) {
+        component.ship = this;
+        this.rows[row].push(component);
+    }
+
     getCargo(kind: typeof Cargo, amount: number) {
         // NOTE: can't take more than we have
         if (amount > this.cargoTypes[kind.id]) return false;
@@ -216,10 +221,8 @@ export class Ship {
         ship.rows = [[], [], [], []]
         ship.offsets = [0, 0, 0, 0]
         for (let i = 0; i < size; i++) {
-            let row = randomInt(0, rowCount - 1)
             let componentType = randomFrom(componentTypes) as unknown as new () => Component
             let component = new componentType()
-            component.ship = ship;
             if (component instanceof CargoBay) {
                 let cargos = randomInt(0, cargoPerCargoBay);
                 for (let j = 0; j < cargos; j++) {
@@ -227,7 +230,7 @@ export class Ship {
                     component.cargo.push(new cargoType())
                 }
             }
-            ship.rows[row].push(component)
+            ship.addComponent(component, randomInt(0, rowCount - 1));
         }
         for (let i = 0; i < ship.rows.length; i++) {
             ship.offsets[i] = randomInt(0, ship.rows[i].length)
@@ -241,9 +244,9 @@ export class Ship {
         const ship = new Ship();
         ship.color = 'black';
         ship.rows = [[], []];
-        ship.rows[randomInt(0, 1)].push(new NavigationComputer())
-        ship.rows[randomInt(0, 1)].push(new Radar())
-        ship.rows[randomInt(0, 1)].push(new TradingComputer())
+        ship.addComponent(new NavigationComputer(), randomInt(0, 1));
+        ship.addComponent(new Radar(), randomInt(0, 1));
+        ship.addComponent(new TradingComputer(), randomInt(0, 1));
         ship.offsets = [
             randomInt(0, ship.rows[0].length),
             randomInt(0, ship.rows[1].length)];

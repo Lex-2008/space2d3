@@ -98,7 +98,9 @@ function drawRadar(ts?: number) {
     // TODO: draw planets only once, and redraw only ships
     // (maybe on another canvas)
     draw_star(ctx, gs.star);
-    draw_ships(ctx, gs.star.ships, gs.playerShip.componentTypes[Radar.id]);
+    const ship = gs.walkManager.walker.map.map[gs.walkManager.walker.x][gs.walkManager.walker.y].ship;
+    if (ship === undefined) return;
+    draw_ships(ctx, gs.star.ships, ship.componentTypes[Radar.id]);
 }
 
 export class Cloak extends NormalComponent { }

@@ -91,15 +91,15 @@ export function drawShip(ctx: CanvasRenderingContext2D, x0, y0, ship: Ship, map?
     drawPassage(ctx, x0, y0, ship, map);
 }
 
-export function draw_ship(ctx: CanvasRenderingContext2D, ship: Ship, cell_size: number) {
+export function draw_ship(ctx: CanvasRenderingContext2D, ship: Ship, cell_size: number, myRadars?: number) {
     // draw ship ON STAR MAP
     const x = (ship.x) * cell_size;
     const y = (ship.y) * cell_size;
     // console.log('draw', ship.color, x, y);
     ctx.fillStyle = ship.color;
     ctx.fillRect(x - 1, y - 1, 3, 3);
-    if (ship instanceof PlayerShip) {
-        for (let r = 1; r <= ship.componentTypes['Radar']; r++) {
+    if (myRadars !== undefined && ship instanceof PlayerShip) {
+        for (let r = 1; r <= myRadars; r++) {
             ctx.beginPath();
             ctx.arc(x, y, cell_size * r, 0, 7);
             ctx.strokeStyle = 'red';
@@ -151,7 +151,7 @@ export function draw_ships(ctx: CanvasRenderingContext2D, ships: Ship[], myRadar
     const cell_size = max_size / gs.star.size;
     for (let ship of ships) {
         if (ship instanceof PlayerShip || ship.seenBy(gs.playerShip, myRadars))
-            draw_ship(ctx, ship, cell_size);
+            draw_ship(ctx, ship, cell_size, myRadars);
     }
 }
 
