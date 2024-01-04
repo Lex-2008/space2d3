@@ -2,8 +2,9 @@ import { ResourceCargo } from "./cargo.js";
 import { planet_size, shipBaseSpeed } from "./const.js";
 import { lineCrossesObj } from "./geometry.js";
 import { makePlanets, Planet, PlanetType } from "./planets.js";
+import { PlayerShip } from "./playerShip.js";
 import { types } from "./saveableType.js";
-import { Ship } from "./ship.js";
+import { Ship, ShipData } from "./ship.js";
 import { seq, randomFrom, randomInt, shuffle } from "./utils.js";
 
 // 1. copypaste table from https://www.cssportal.com/css3-color-names/ to vim
@@ -37,17 +38,18 @@ function mkgrid(star: Star, size: number) {
 
 export interface StarData {
 	c: string,
-	s: number,
+	sz: number,
 	// n: number[] | false,
 	p: [number, number, number][] | false,
-	v: boolean,
+	sh: ShipData[] | false,
+	// v: boolean,
 }
 
 export class Star {
 	color: string;
 	size: number;
-	visited: boolean;
-	x: number; y: number;
+	// visited: boolean;
+	// x: number; y: number;
 	bright: boolean;
 	name: string;
 	// neighbours: Directions;
@@ -59,21 +61,21 @@ export class Star {
 		if (!load) {
 			load = {
 				c: randomFrom(starColors),
-				s: randomInt(5, 9),
+				sz: randomInt(5, 9),
 				// n: false,
 				p: false,
-				v: false,
+				sh: false,
+				// v: false,
 			}
 
 		}
 		// TODO: make sure colors don't repeat
 		this.color = load.c;
-		this.size = load.s;
-		this.visited = load.v;
-		this.x = this.y = this.size / 2;
+		this.size = load.sz;
+		// this.visited = load.v;
+		// this.x = this.y = this.size / 2;
 		this.bright = false;
 		this.name = this.color;
-		this.ships = [];
 		if (this.size % 2 == 0) {
 			this.bright = true;
 			this.name = 'bright ' + this.name;
@@ -86,12 +88,18 @@ export class Star {
 		// }
 		this.grid = mkgrid(this, this.size);
 		if (!load.p) load.p = makePlanets(this.size); //from planets.js
-		this.planets = load.p.map((x) => new Planet(...x));
+		this.planets = load.p.map((x, i) => new Planet(...x, i));
 		for (var planet of this.planets) {
 			// add neighbours
 			planet.neighbours = shuffle(this.planets.filter(p => p != planet && !this.pathCollides(p, planet)));
 			// add planet to grid
 			this.grid[Math.floor(planet.x)][Math.floor(planet.y)] = planet;
+		}
+		if (load.sh) {
+			this.ships = load.sh.map(s => {
+				if (s.p) return PlayerShip.fromJSON(s, this);
+				return Ship.fromJSON(s, this);
+			});
 		}
 		// this.jobs = countJobs(this.planets);
 		this.setRatios();
@@ -108,7 +116,7 @@ export class Star {
 	// }
 
 	pathCollides(a: Planet, b: Planet): boolean {
-		if (lineCrossesObj(a, b, this, 0.5)) return true;
+		if (lineCrossesObj(a, b, { 'x': this.size / 2, 'y': this.size / 2 }, 0.5)) return true;
 		for (var planet of this.planets) {
 			if (planet != a && planet != b &&
 				lineCrossesObj(a, b, planet, planet_size)) return true;
@@ -151,13 +159,14 @@ export class Star {
 		}
 	}
 
-	save(): StarData {
+	toJSON(): StarData {
 		return {
 			c: this.color,
-			s: this.size,
+			sz: this.size,
 			// n: Array.from(this.neighbours).map(x => x.value),
-			p: this.planets.map(x => x.save()),
-			v: this.visited,
+			p: this.planets.map(x => x.toJSON()),
+			// v: this.visited,
+			sh: this.ships.map(x => x.toJSON()),
 		};
 	}
 }

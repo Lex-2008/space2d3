@@ -1,6 +1,7 @@
 import { showDate } from "./draw";
 import { setStatus } from "./index";
-import { PlayerShip } from "./playerShip";
+import { PlayerShip, isPlayerShip } from "./playerShip";
+import { fromJSON } from "./saveableType";
 import { Ship } from "./ship";
 import { Star } from "./stars";
 import { walkManager } from "./walkManager";
@@ -60,23 +61,44 @@ export class GameState {
         //     this.playerShip.fromPlanet = this.playerShip.onPlanet;
         // }
         this.timeFlies = true;
-        this.playerShip.flying = true;
+        // this.playerShip.flying = true;
         this.playerShip.onPlanet = null;
         this.walkManager.detach(this.walkCTX);
         this.lastDate = -1;
         this.tick();
-    }
+    };
+
     arrive() {
         this.playerShip.onPlanet = this.playerShip.toPlanet;
         this.playerShip.x = this.playerShip.onPlanet.x;
         this.playerShip.y = this.playerShip.onPlanet.y;
-        this.playerShip.flying = false;
+        // this.playerShip.flying = false;
         this.timeFlies = false;
         this.walkManager.attach(this.walkCTX, this.playerShip.onPlanet.base);
         setStatus(`Docked to base at ${this.playerShip.onPlanet.name} planet`);
+        localStorage.space2d3_2 = JSON.stringify(this.toJSON());
+    };
 
+    toJSON() {
+        return {
+            's': this.star.toJSON(),
+            'n': this.now,
+        }
+    }
+
+    static fromJSON(a) {
+        const gs = new GameState();
+        gs.star = new Star(a.s);
+        const playerShips = gs.star.ships.filter(isPlayerShip);
+        if (playerShips.length != 1) debugger; // return false;
+        gs.playerShip = playerShips[0];
+        gs.now = a.n;
+        return gs;
     }
 }
 
-export const gs = new GameState();
-showDate(0);
+export function loadGS(data) {
+    gs = GameState.fromJSON(data) || gs;
+}
+
+export let gs = new GameState();

@@ -1,11 +1,12 @@
 import { gs } from "./gameState";
 import { setStatus } from "./index";
 import { Planet } from "./planets";
-import { Ship } from "./ship";
+import { Ship, ShipData } from "./ship";
+import { Star } from "./stars";
 
 
 export class PlayerShip extends Ship {
-    flying = false;
+    // flying = false;
     onPlanet: Planet | null;
 
     updateSpaceXY(now: number) {
@@ -20,4 +21,19 @@ export class PlayerShip extends Ship {
         ship.color = 'white';
         return ship;
     }
+
+    toJSON(): ShipData {
+        const data = super.toJSON();
+        data.p = true;
+        if (this.onPlanet != null) data.on = this.onPlanet.i;
+        return data;
+    }
+
+    static fromJSON(data: ShipData, star: Star) {
+        let ship = new PlayerShip();
+        Ship.fromJSON(data, star, ship);
+        return ship;
+    }
 }
+
+export function isPlayerShip(ship: Ship): ship is PlayerShip { return ship instanceof PlayerShip };

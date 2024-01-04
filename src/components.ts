@@ -31,7 +31,7 @@ addType(Passage, 'Passage')
 
 export class Ballast extends UselessComponent {
     opposite? = ''
-    onEnter(gs) {
+    onEnter(gs: GameState) {
         (document.querySelector('#Ballast b') as HTMLElement).innerText = this.opposite || ''
     }
 }
@@ -41,14 +41,14 @@ export class Debris extends UselessComponent {
     original: string = ''
     toJSON() {
         return {
-            'type': this.typename,
-            'original': this.original
+            't': this.typename,
+            'o': this.original,
         }
     }
-    static fromJSON(type: typeof SaveableObject, data: { original: string }) {
-        let a = new Debris()
-        a.original = data.original
-        return a
+    static fromJSON(type: typeof SaveableObject, data: { o: string }) {
+        let a = new Debris();
+        a.original = data.o;
+        return a;
     }
 }
 addType(Debris, 'Debris')
@@ -61,13 +61,13 @@ export class CargoBay extends NormalComponent {
     cargo: Array<Cargo> = []
     toJSON() {
         return {
-            'type': this.typename,
-            'cargo': this.cargo.map(x => x.toJSON())
+            't': this.typename,
+            'c': this.cargo.map(x => x.toJSON())
         };
     }
-    static fromJSON(type: typeof SaveableObject, data: { cargo: Array<{ 'type': string }> }) {
+    static fromJSON(type: typeof SaveableObject, data: { c: Array<{ 't': string }> }) {
         let a = new CargoBay();
-        a.cargo = data.cargo.map((x: { type: string }) => fromJSON(x));
+        a.cargo = data.c.map((x: { t: string }) => fromJSON(x));
         return a;
     }
     onEnter(gs: GameState) {

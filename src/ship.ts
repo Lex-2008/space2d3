@@ -4,6 +4,7 @@ import { cargoPerCargoBay, shipBaseSpeed, shipColors } from "./const"
 import { Point } from "./geometry"
 import { Planet } from "./planets"
 import { fromJSON, types } from "./saveableType"
+import { Star } from "./stars"
 import { randomFrom, randomInt } from "./utils"
 
 export interface xywh {
@@ -11,6 +12,20 @@ export interface xywh {
     'y': number,
     'w': number,
     'h': number
+}
+
+export interface ShipData {
+    'a': boolean,
+    'c': string,
+    'o': number[],
+    'r': { 't': string }[][],
+    'frX': number,
+    'frY': number,
+    'frT': number,
+    'toP': number,
+    'toT': number,
+    'p'?: boolean,
+    'on'?: number,
 }
 
 export class Ship {
@@ -119,19 +134,37 @@ export class Ship {
         return myRadars >= dist + this.componentTypes[Cloak.id];
     }
 
-    toJSON() {
+    toJSON(): ShipData {
         return {
-            'isAlien': this.isAlien,
-            'offsets': this.offsets,
-            'rows': this.rows.map(row => row.map(component => component.toJSON()))
+            'a': this.isAlien,
+            'c': this.color,
+            'o': this.offsets,
+            'r': this.rows.map(row => row.map(component => component.toJSON())),
+            'frX': this.fromPoint.x,
+            'frY': this.fromPoint.y,
+            'frT': this.fromTime,
+            'toP': this.toPlanet.i,
+            'toT': this.toTime,
         }
     }
 
-    static fromJSON(data: { isAlien: boolean; offsets: number[]; rows: { type: string }[][] }) {
-        const ship = new Ship()
-        ship.isAlien = data.isAlien
-        ship.offsets = data.offsets
-        ship.rows = data.rows.map(row => row.map((x: { type: string }) => fromJSON(x) as Component))
+    static fromJSON(data: ShipData, star: Star, ship?: Ship) {
+        if (!ship) ship = new Ship();
+        ship.isAlien = data.a;
+        ship.color = data.c;
+        ship.offsets = data.o;
+        ship.rows = [];
+        for (let row = 0; row < data.r.length; row++) {
+            ship.rows[row] = [];
+            for (let c = 0; c < data.r[row].length; c++) {
+                ship.addComponent(fromJSON(data.r[row][c]) as Component, row);
+            }
+        }
+        ship.fromPoint = { 'x': data.frX, 'y': data.frY };
+        ship.fromTime = data.frT;
+        ship.toPlanet = star.planets[data.toP];
+        // ship.balanceBallast();
+        ship.countComponents();
         return ship;
     }
 

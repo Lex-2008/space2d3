@@ -5,7 +5,7 @@ export abstract class SaveableObject {
     get typename(): string { return this.mytype.id }
 
     toJSON() {
-        return { 'type': this.typename }
+        return { 't': this.typename }
     }
     static fromJSON(type: typeof SaveableObject, data: object) {
         // same as `return new type()`
@@ -13,9 +13,9 @@ export abstract class SaveableObject {
     }
 }
 
-export function fromJSON(data: { 'type': string }) {
-    const type = types[data.type]
-    return type.fromJSON(type, data)
+export function fromJSON(data: { 't': string }) {
+    const type = types[data.t];
+    return type.fromJSON(type, data);
 }
 
 

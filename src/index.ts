@@ -4,11 +4,11 @@ import { Ship } from "./ship.js";
 import { CargoBay, Component } from "./components.js";
 import { fromJSON, types } from "./saveableType.js";
 import { Rocket } from "./cargo.js";
-import { componentSize, drawShip } from "./draw.js";
+import { componentSize, drawShip, showDate } from "./draw.js";
 import { walkManager } from "./walkManager.js";
 import { WalkMap, Walker } from "./walker.js";
 import { Star } from "./stars.js";
-import { gs } from "./gameState.js";
+import { GameState, gs, loadGS } from "./gameState.js";
 
 export function gebi(id: string) {
     const element = document.getElementById(id);
@@ -27,23 +27,11 @@ if (location.hostname == 'localhost' || location.hostname == '127.0.0.1') {
 
 
 
-let my_ship = PlayerShip.randomShip(15);
-// let my_ship = Ship.randomShip(15);
-// let other_ship = Ship.randomShip(35);
-
-window.gs = gs;
-
-gs.star = new Star();
-gs.star.addRandomShips(0);
-gs.star.ships.push(my_ship);
-gs.playerShip = my_ship;
-
 //var s = Ship.randomShip(1);
 //var m = new WalkMap(0, 0)
 var w = new Walker()
 var wm = new walkManager()
 wm.walker = w;
-gs.walkManager = wm;
 
 var c = gebi("myCanvas") as HTMLCanvasElement;
 var ctx = c.getContext("2d") as CanvasRenderingContext2D;
@@ -52,32 +40,41 @@ w.box = gebi('canvasBox')
 w.human = gebi('human')
 w.canvas = c
 w.onEnter = onEnter
-gs.walkCTX = ctx;
 
 function x_rand() {
-    wm.myShip = my_ship;
+    gs.star = new Star();
+    gs.star.addRandomShips(0);
+    gs.playerShip = PlayerShip.randomShip(15);
+    gs.star.ships.push(gs.playerShip);
+
+    wm.myShip = gs.playerShip;
     wm.drawMyShip(ctx);
     w.jumpTo(wm.oneShipData.x0 + 1, wm.oneShipData.y0 + 1);
-    my_ship.planTrip({ 'x': gs.star.planets[0].x - 0.1, y: gs.star.planets[0].y }, gs.star.planets[0], -1);
+    gs.playerShip.planTrip({ 'x': gs.star.planets[0].x - 0.1, y: gs.star.planets[0].y }, gs.star.planets[0], -1);
     gs.now = 0;
+    gs.walkManager = wm;
+    gs.walkCTX = ctx;
     gs.arrive();
+    showDate(gs.now);
+    window.gs = gs;
+
 }
 
-// function x_attach() {
-//     wm.attach(ctx, Ship.randomShip(25));
-//     setStatus('Docked to another ship');
-// }
+function x_load() {
+    loadGS(JSON.parse(localStorage.space2d3_2));
+    wm.myShip = gs.playerShip;
+    wm.drawMyShip(ctx);
+    w.jumpTo(wm.oneShipData.x0 + 1, wm.oneShipData.y0 + 1);
+    gs.walkManager = wm;
+    gs.walkCTX = ctx;
+    gs.arrive();
+    showDate(Math.floor(gs.now));
+    window.gs = gs;
 
-// function x_save() {
-//     localStorage.space2d3_1_ship = JSON.stringify(s.toJSON())
-// }
+}
 
-// function x_load() {
-//     s = Ship.fromJSON(JSON.parse(localStorage.space2d3_1_ship))
-//     x_draw(s)
-// }
-
-x_rand();
+if (localStorage.space2d3_2) x_load();
+else x_rand();
 // gebi('save').onclick = x_save;
 // gebi('load').onclick = x_load;
 // gebi('random').onclick = x_rand;

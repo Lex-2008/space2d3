@@ -34,6 +34,7 @@ const planetTypes = (function () {
 
 export class Planet {
 	x: number; y: number;
+	i: number; //index in star's list of planets
 	type: number;
 	name: string;
 	buys: typeof ResourceCargo | null;
@@ -43,10 +44,11 @@ export class Planet {
 	color_out: string;
 	neighbours: Planet[];
 	base: Ship;
-	constructor(x: number, y: number, type_n: number) {
+	constructor(x: number, y: number, type_n: number, i: number) {
 		var type = planetTypes[type_n];
 		this.x = x;
 		this.y = y;
+		this.i = i;
 		this.type = type_n;
 		this.name = type[0];
 		this.buys = type[1];
@@ -58,7 +60,7 @@ export class Planet {
 	distanceTo(p: Point) {
 		return Math.hypot(this.x - p.x, this.y - p.y);
 	}
-	save(): [number, number, number] {
+	toJSON(): [number, number, number] {
 		return [this.x, this.y, this.type];
 	}
 	dispatch(ship: Ship, departTime: number) {
