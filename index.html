@@ -73,9 +73,9 @@
 		<form method="dialog"><button>OK</button></form>
 	</dialog>
 	<div id="main" style="display: none; height: 500px;">
-		<fieldset style="width: 154px;">
+		<fieldset style="flex-grow:1">
 			<legend>day <span id="now-day"></span> (<span id="now-date"></span>)</legend>
-			<div id="canvasBox" style="position: relative; display:flex; align-items: center; justify-content: center; width: 200px; height: 100%; overflow: hidden; background: black; border: 2px groove ButtonBorder;">
+			<div id="canvasBox" style="position: relative; display:flex; align-items: center; justify-content: center; height: 100%; overflow: hidden; background: black; border: 2px groove ButtonBorder;">
 				<canvas id="myCanvas" style="position: absolute; transition: all 0.166s cubic-bezier(0,.5,.8,.8) 0s; transition-property: top,left;"></canvas>
 				<span id="human" style="font-family:sans;transition: transform 0.166s linear 0s;">A</span>
 			</div>
