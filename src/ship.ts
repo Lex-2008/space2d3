@@ -168,6 +168,7 @@ export class Ship {
         ship.fromTime = data.frT;
         if (star) ship.toPlanet = star.planets[data.toP];
         // ship.balanceBallast();
+        ship.fillBallastOpposite();
         ship.countComponents();
         return ship;
     }
@@ -329,7 +330,16 @@ export class Ship {
                 }
             }
             // TODO: remove empty rows?
-            // record what's opposite to ballast
+        }
+        this.fillBallastOpposite()
+    }
+
+    fillBallastOpposite() {
+        // record what's opposite to ballast
+        if (this.isAlien) {
+            //...
+        } else {
+            const max = this.rows.length - 1;
             for (var i = 0; i <= max; i++) {
                 for (var j = 0; j <= this.rows[i].length; j++) {
                     if (this.rows[i][j] instanceof Ballast) {
