@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="height: 100%;">
 <head>
 	<title>space2d3</title>
 	<link id="favicon" rel="icon" href="star.svg">
@@ -52,7 +52,7 @@
 	<style id="currentComponent"></style>
 	<style id="currentComponentPage"></style>
 </head>
-<body>
+<body style="height: calc(100% - 16px);">
 	<dialog id="mainMenu">
 		<form method="dialog">
 			<fieldset>
@@ -72,7 +72,7 @@
 		<p>It's always equally easy to <i>play</i> the game. You can never really lose for real: ships never kill each other completely, and as long as you have <i>any</i> kind of ship - you can start working on making it better!</p>
 		<form method="dialog"><button>OK</button></form>
 	</dialog>
-	<div id="main" style="display: none; height: 500px;">
+	<div id="main" style="display: none; height: 100%;">
 		<fieldset style="flex-grow:1">
 			<legend>day <span id="now-day"></span> (<span id="now-date"></span>)</legend>
 			<div id="canvasBox" style="position: relative; display:flex; align-items: center; justify-content: center; height: 100%; overflow: hidden; background: black; border: 2px groove ButtonBorder;">
