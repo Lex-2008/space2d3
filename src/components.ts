@@ -114,13 +114,13 @@ export class NavigationComputer extends ComputerComponent {
     planetTr(value: { planet: Planet; i: number }) {
         const planet = value.planet;
         const i = value.i;
-        if (planet == gs.playerShip.onPlanet) return '';
         const time = Math.ceil(planet.distanceTo(gs.playerShip) / shipBaseSpeed);
         const selected = (planet == gs.playerShip.toPlanet) ? 'checked' : '';
+        const disabled = (planet == gs.playerShip.onPlanet) ? 'disabled' : '';
         return `<tr><td>
             <label for="NavigationComputer_to_${i}"><canvas id="NavigationComputer_canvas_${i}" width=30 height=30></canvas></label>
         </td><td>
-            <label><input type="radio" name="NavigationComputer_to" value="${i}" id="NavigationComputer_to_${i}" ${selected}>
+            <label><input type="radio" name="NavigationComputer_to" value="${i}" id="NavigationComputer_to_${i}" ${disabled} ${selected}>
             <b>${planet.name}</b> (${time}d)<br>
             ${planet.buys ? `wants: ${planet.buys.id}` : ''} ${planet.sells ? `gives: ${planet.sells.id}` : ''}
         </label></td></tr>`
