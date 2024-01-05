@@ -81,16 +81,18 @@ export class GameState {
 
     toJSON() {
         return {
+            'v': 1,
             's': this.star.toJSON(),
             'n': this.now,
         }
     }
 
-    static fromJSON(a) {
+    static fromJSON(a): GameState | false {
+        if (a.v != 1) return false;
         const gs = new GameState();
         gs.star = new Star(a.s);
         const playerShips = gs.star.ships.filter(isPlayerShip);
-        if (playerShips.length != 1) debugger; // return false;
+        if (playerShips.length != 1) return false;
         gs.playerShip = playerShips[0];
         gs.now = a.n;
         return gs;

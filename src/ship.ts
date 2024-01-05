@@ -16,6 +16,7 @@ export interface xywh {
 
 export interface ShipData {
     'a': boolean,
+    'n': string,
     'c': string,
     'o': number[],
     'r': { 't': string }[][],
@@ -29,6 +30,7 @@ export interface ShipData {
 }
 
 export class Ship {
+    name: string;
     color: string;
     isAlien: boolean = false
     rows: Array<Array<Component>> = []
@@ -137,20 +139,22 @@ export class Ship {
     toJSON(): ShipData {
         return {
             'a': this.isAlien,
+            'n': this.name,
             'c': this.color,
             'o': this.offsets,
             'r': this.rows.map(row => row.map(component => component.toJSON())),
-            'frX': this.fromPoint.x,
-            'frY': this.fromPoint.y,
+            'frX': this.fromPoint?.x,
+            'frY': this.fromPoint?.y,
             'frT': this.fromTime,
-            'toP': this.toPlanet.i,
+            'toP': this.toPlanet?.i,
             'toT': this.toTime,
         }
     }
 
-    static fromJSON(data: ShipData, star: Star, ship?: Ship) {
+    static fromJSON(data: ShipData, star?: Star, ship?: Ship) {
         if (!ship) ship = new Ship();
         ship.isAlien = data.a;
+        ship.name = data.n;
         ship.color = data.c;
         ship.offsets = data.o;
         ship.rows = [];
@@ -162,7 +166,7 @@ export class Ship {
         }
         ship.fromPoint = { 'x': data.frX, 'y': data.frY };
         ship.fromTime = data.frT;
-        ship.toPlanet = star.planets[data.toP];
+        if (star) ship.toPlanet = star.planets[data.toP];
         // ship.balanceBallast();
         ship.countComponents();
         return ship;
@@ -273,7 +277,7 @@ export class Ship {
         return ship
     }
 
-    static newBase(planet: Planet) {
+    static newBase() {
         const ship = new Ship();
         ship.color = 'black';
         ship.rows = [[], []];

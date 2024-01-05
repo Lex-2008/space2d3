@@ -17,6 +17,14 @@
 			border-color: ButtonBorder;
 		}
 
+		#mainMenu form,
+		#mainMenu fieldset {
+			display: flex;
+			flex-direction: column;
+			gap: 1ex;
+			text-align: center;
+		}
+
 		legend {
 			white-space: nowrap
 		}
@@ -45,7 +53,26 @@
 	<style id="currentComponentPage"></style>
 </head>
 <body>
-	<div style="display: flex; height: 500px;">
+	<dialog id="mainMenu">
+		<form method="dialog">
+			<fieldset>
+				<legend>New game</legend>
+				<button id="newGameEasy">Easy</button>
+				<button id="newGameHard">Hard</button>
+				<a href="javascript:document.getElementById('aboutHard').showModal();">About this</a>
+			</fieldset>
+			<button id="loadGame" style="display: none;">Load Game</button>
+		</form>
+	</dialog>
+	<dialog id="aboutHard" style="width: 22em;">
+		<p style="margin-top: 0;">This is about how hard is it to <i>comprehend</i> the game from start.</p>
+		<p>In <b>easy</b> mode you start in a ship with only one component - so you have to learn only one from start, and will figure out others later as you get them.</p>
+		<p>In <b>medi</b> mode your start ship has seven different kinds of components.</p>
+		<p>In <b>hard</b> mode your ship has fifteen random components, and I don't know which.</p>
+		<p>It's always equally easy to <i>play</i> the game. You can never really lose for real: ships never kill each other completely, and as long as you have <i>any</i> kind of ship - you can start working on making it better!</p>
+		<form method="dialog"><button>OK</button></form>
+	</dialog>
+	<div id="main" style="display: none; height: 500px;">
 		<fieldset style="width: 154px;">
 			<legend>day <span id="now-day"></span> (<span id="now-date"></span>)</legend>
 			<div id="canvasBox" style="position: relative; display:flex; align-items: center; justify-content: center; width: 200px; height: 100%; overflow: hidden; background: black; border: 2px groove ButtonBorder;">
@@ -98,7 +125,6 @@
 			</fieldset>
 		</div>
 	</div>
-	<hr>
 	<script src="script.js"></script>
 </body>
 </html>

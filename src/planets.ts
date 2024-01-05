@@ -1,7 +1,7 @@
 import { Food, Iron, Radioactives, ResourceCargo, Water } from "./cargo";
 import { shipBaseSpeed } from "./const";
 import { Point } from "./geometry";
-import { Ship } from "./ship";
+import { Ship, ShipData } from "./ship";
 import { shuffle, seq } from "./utils";
 
 export type PlanetType = [name: string, buys: typeof ResourceCargo | null, sells: typeof ResourceCargo, color_in: string, color_out: string];
@@ -55,13 +55,12 @@ export class Planet {
 		this.sells = type[2];
 		this.color_in = type[3];
 		this.color_out = type[4];
-		this.base = Ship.newBase(this);
 	}
 	distanceTo(p: Point) {
 		return Math.hypot(this.x - p.x, this.y - p.y);
 	}
-	toJSON(): [number, number, number] {
-		return [this.x, this.y, this.type];
+	toJSON(): [number, number, number, ShipData] {
+		return [this.x, this.y, this.type, this.base.toJSON()];
 	}
 	dispatch(ship: Ship, departTime: number) {
 		//send the ship in a random direction

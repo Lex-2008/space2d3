@@ -40,7 +40,7 @@ export interface StarData {
 	c: string,
 	sz: number,
 	// n: number[] | false,
-	p: [number, number, number][] | false,
+	p: [number, number, number, ShipData?][] | false,
 	sh: ShipData[] | false,
 	// v: boolean,
 }
@@ -88,7 +88,12 @@ export class Star {
 		// }
 		this.grid = mkgrid(this, this.size);
 		if (!load.p) load.p = makePlanets(this.size); //from planets.js
-		this.planets = load.p.map((x, i) => new Planet(...x, i));
+		this.planets = load.p.map((x, i) => {
+			const p = new Planet(x[0], x[1], x[2], i);
+			if (x[3]) p.base = Ship.fromJSON(x[3]);
+			else p.base = Ship.newBase();
+			return p;
+		});
 		for (var planet of this.planets) {
 			// add neighbours
 			planet.neighbours = shuffle(this.planets.filter(p => p != planet && !this.pathCollides(p, planet)));
