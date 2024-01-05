@@ -60,6 +60,7 @@ w.box = gebi('canvasBox')
 w.human = gebi('human')
 w.canvas = c
 w.onEnter = onEnter
+window.onresize = () => { gs.walkManager.walker.reposition(true) }
 
 function newGame(shipData?: ShipData) {
     gs.star = new Star();
