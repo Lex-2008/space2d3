@@ -1,11 +1,11 @@
-import { Cargo, UsefulCargo, isCargoType } from "./cargo"
-import { Ballast, CargoBay, Cloak, Component, NavigationComputer, NormalComponent, Radar, TradingComputer, isCargoBay, isComponentType } from "./components"
+import { Cargo, MissionBox, UsefulCargo, isCargoType } from "./cargo"
+import { Ballast, CargoBay, Cloak, Component, MissionComputer, NavigationComputer, NormalComponent, Radar, TradingComputer, isCargoBay, isComponentType, isComputerComponentType, isNormalComponentType } from "./components"
 import { cargoPerCargoBay, shipBaseSpeed, shipColors } from "./const"
 import { Point } from "./geometry"
 import { Planet } from "./planets"
 import { fromJSON, types } from "./saveableType"
 import { Star } from "./stars"
-import { randomFrom, randomInt } from "./utils"
+import { randomFrom, randomInt, shuffle } from "./utils"
 
 export interface xywh {
     'x': number,
@@ -98,6 +98,21 @@ export class Ship {
 
     addComponent(component: Component, row: number) {
         component.ship = this;
+        // TODO: is isAlien
+        if (row < 0) {
+            this.rows.unshift([]);
+            this.rows.push([]);
+            this.offsets.unshift(0);
+            this.offsets.push(0);
+            row = 0;
+        }
+        if (row >= this.rows.length) {
+            this.rows.unshift([]);
+            this.rows.push([]);
+            this.offsets.unshift(0);
+            this.offsets.push(0);
+            row = this.rows.length - 1;
+        }
         this.rows[row].push(component);
     }
 
@@ -116,6 +131,21 @@ export class Ship {
         }
     }
 
+    getMissionBox(to: string, amount: number) {
+        // NOTE: can't take more than we have
+        if (amount > this.cargoTypes[MissionBox.id]) return false;
+        this.cargoTypes[MissionBox.id] -= amount;
+        this.freeCargo += amount;
+        const allCargoBays = this.rows.flat().filter(isCargoBay).filter(cargoBay => cargoBay.cargo.length);
+        // TODO: sort
+        for (let cargoBay of allCargoBays) {
+            // filter out up to _amount_ items from cargo bays
+            // x=2;console.log([1,2,1,3,1,4,1,5].filter(v=>!(v==1&&x-->0)));
+            cargoBay.cargo = cargoBay.cargo.filter(cargo => !(cargo instanceof MissionBox && cargo.to == to && amount-- > 0));
+            if (amount <= 0) return true;
+        }
+    }
+
     putCargo(kind: typeof Cargo, amount: number) {
         if (amount > this.freeCargo) return false;
         this.cargoTypes[kind.id] += amount;
@@ -125,6 +155,26 @@ export class Ship {
         for (let cargoBay of allCargoBays) {
             while (amount > 0 && cargoBay.cargo.length < cargoPerCargoBay) {
                 cargoBay.cargo.push(new (kind as unknown as new () => Cargo)());
+                amount--;
+            }
+            if (amount <= 0) return true;
+        }
+    }
+
+    putMissionBox(from: string, to: string, total: number) {
+        if (total > this.freeCargo) return false;
+        this.cargoTypes[MissionBox.id] += total;
+        this.freeCargo -= total;
+        const allCargoBays = this.rows.flat().filter(isCargoBay).filter(cargoBay => cargoBay.cargo.length < cargoPerCargoBay);
+        // TODO: sort
+        let amount = total;
+        for (let cargoBay of allCargoBays) {
+            while (amount > 0 && cargoBay.cargo.length < cargoPerCargoBay) {
+                let box = new MissionBox();
+                box.from = from;
+                box.to = to;
+                box.total = total;
+                cargoBay.cargo.push(box);
                 amount--;
             }
             if (amount <= 0) return true;
@@ -252,8 +302,10 @@ export class Ship {
 
     static randomShip(size: number, ship?: Ship) {
         const rowCount = 4
-        const componentTypes = Object.values(types).filter(x => (x.prototype instanceof NormalComponent)) as Array<typeof Component>
-        const cargoTypes = Object.values(types).filter(x => (x.prototype instanceof Cargo)) as Array<typeof Cargo>
+        const noramalComponentTypes = Object.values(types).filter(isNormalComponentType);
+        const computerTypes = Object.values(types).filter(isComputerComponentType);
+        const componentTypes = noramalComponentTypes.concat(computerTypes);
+        const cargoTypes = Object.values(types).filter(isCargoType);
         if (ship === undefined) ship = new Ship();
         ship.color = randomFrom(shipColors);
         ship.rows = [[], [], [], []]
@@ -282,9 +334,9 @@ export class Ship {
         const ship = new Ship();
         ship.color = 'black';
         ship.rows = [[], []];
-        ship.addComponent(new NavigationComputer(), randomInt(0, 1));
-        ship.addComponent(new Radar(), randomInt(0, 1));
-        ship.addComponent(new TradingComputer(), randomInt(0, 1));
+        const components = shuffle([new NavigationComputer(), new Radar(), new TradingComputer(), new MissionComputer()])
+        for (let component of components)
+            ship.addComponent(component, randomInt(0, 1));
         ship.offsets = [
             randomInt(0, ship.rows[0].length),
             randomInt(0, ship.rows[1].length)];
@@ -293,6 +345,20 @@ export class Ship {
         return ship
     }
 
+    deBallastTail() {
+        // remove extra ballast from tail (top of the ship)
+        // Leaves the ship unbalanced, remember to run balanceBallast after
+        if (this.isAlien) {
+            //...
+        } else {
+            const max = this.rows.length - 1;
+            for (var i = 0; i <= max; i++) {
+                while (this.rows[i].at(-1) instanceof Ballast) {
+                    this.rows[i].pop();
+                }
+            }
+        }
+    }
     balanceBallast() {
         if (this.isAlien) {
             //...

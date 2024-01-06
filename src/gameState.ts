@@ -74,6 +74,7 @@ export class GameState {
         this.playerShip.y = this.playerShip.onPlanet.y;
         // this.playerShip.flying = false;
         this.timeFlies = false;
+        this.playerShip.onPlanet.onEnter();
         this.walkManager.attach(this.walkCTX, this.playerShip.onPlanet.base);
         setStatus(`Docked to base at ${this.playerShip.onPlanet.name} planet`);
         localStorage.space2d3_2 = JSON.stringify(this.toJSON());

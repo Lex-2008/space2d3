@@ -80,12 +80,12 @@
 				<span id="human" style="font-family:sans;transition: transform 0.166s linear 0s;">A</span>
 			</div>
 		</fieldset>
-		<div style="display: flex; flex-flow: column;">
+		<div style="width: 333px; display: flex; flex-flow: column;">
 			<fieldset>
 				<legend>Status</legend>
 				<div id="status"></div>
 			</fieldset>
-			<fieldset class="component" style="width: 300px; overflow: scroll;">
+			<fieldset class="component" style="flex-grow: 1; overflow: scroll;">
 				<legend id="componentLegend"></legend>
 				<div id="CargoBay">Space to store come cargo. <div id="CargoBay_NonEmpty">It contains: <ul></ul>
 					</div>
@@ -121,6 +121,36 @@
 						<button id="TradingComputer_gift_take">Take it</button>
 					</div>
 					<div id="TradingComputer_Done">Done! </div>
+				</div>
+				<div id="MissionComputer">
+					<fieldset class="hideChildDiv">
+						<legend>Delivery mission</legend>
+						<div id="MissionComputer_0_None">This planet does not offer delivery mission</div>
+						<div id="MissionComputer_0_InProrgress">You already have a delivery mission in porgress</div>
+						<div id="MissionComputer_0_NoSpace">This planet <i>would</i> offer you a mission, but you don't have enough available cargo space! A free cargo bay can't be provided this time, since you already have enough of them. Free some cargo space in order to accept job offers! Hint: you can lose some cargo by attacking other ships.</div>
+						<div id="MissionComputer_0_Offer">This planet offers you a mission: deliver <b id="MissionComputer_Offer_n">N</b> boxes of cargo to <b id="MissionComputer_Offer_to"></b> planet and get a reward.</b>
+							<div id="MissionComputer_Offer_CargoBay">Required cargo bay will be provided free of charge. To start this mission, select where to add a free cargo bay: <div id="MissionComputer_Offer_CargoBay_select"></div>
+							</div>
+							<div id="MissionComputer_Offer_NoCargoBay">
+								<button id="MissionComputer_Offer_accept">Start Mission</button>
+							</div>
+						</div>
+						<div id="MissionComputer_0_Complete">To complete the mission, choose your reward: <button id="MissionComputer_Complete_resource"></button> or <button id="MissionComputer_Complete_cargo"></button>
+							<div id="MissionComputer_Complete_component_wrap">or where to add <b id="MissionComputer_Complete_component_name"></b>: <div id="MissionComputer_Complete_component_select"></div>
+							</div>
+						</div>
+						<div id="MissionComputer_0_Started">Mission started!</div>
+						<div id="MissionComputer_0_Completed">Mission complete!</div>
+					</fieldset>
+					<fieldset class="hideChildDiv">
+						<legend>Cargo mission</legend>
+						<div id="MissionComputer_1_None">This planet does not offer cargo mission</div>
+						<div id="MissionComputer_1_Cargo">This planet will give you a ship component in exchange to <b id="MissionComputer_Cargo_n">N</b> <b id="MissionComputer_Cargo_name"></b>.</b>
+							<div id="MissionComputer_Cargo_deliver">To accept the deal, choose where to add <b id="MissionComputer_Cargo_component_name"></b>: <div id="MissionComputer_Cargo_component_select"></div>
+							</div>
+						</div>
+						<div id="MissionComputer_1_Completed">Mission complete!</div>
+					</fieldset>
 				</div>
 			</fieldset>
 		</div>

@@ -93,4 +93,16 @@ export class walkManager {
         this.drawTwoShips(ctx, otherShip, this.myShip);
         this.walker.jumpTo(this.twoShipsData.bx0 + player_x, this.twoShipsData.by0 + player_y);
     }
+
+    reattach(ctx: CanvasRenderingContext2D) {
+        if (!this.hasSecondShip) return false;
+        if (this.walker.y >= this.twoShipsData.airlock_y) {
+            // assuming player is on the top ship
+            return
+        }
+        const player_x = this.secondShip.playerX = this.walker.x - this.twoShipsData.ax0;
+        const player_y = this.secondShip.playerY = this.walker.y - this.twoShipsData.ay0;
+        this.drawTwoShips(ctx, this.secondShip, this.myShip);
+        this.walker.jumpTo(this.twoShipsData.ax0 + player_x, this.twoShipsData.ay0 + player_y);
+    }
 }

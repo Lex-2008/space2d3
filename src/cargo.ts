@@ -32,3 +32,33 @@ export class Radioactives extends ResourceCargo {
     static readonly color = 'red';
 }
 addType(Radioactives, 'Radioactives')
+
+export interface MissionBoxData {
+    t: string;
+    f: string;
+    to: string;
+    tot: number;
+}
+export class MissionBox extends Cargo {
+    from: string;
+    to: string;
+    total: number;
+    toJSON(): MissionBoxData {
+        return {
+            't': this.typename,
+            'f': this.from,
+            'to': this.to,
+            'tot': this.total,
+        }
+    }
+
+    static fromJSON(type: typeof MissionBox, data: MissionBoxData): MissionBox {
+        const ret = new type();
+        ret.from = data.f;
+        ret.to = data.to;
+        ret.total = data.tot;
+        return ret;
+    }
+}
+addType(MissionBox, 'MissionBox')
+export function isMissionBox(item: Cargo): item is MissionBox { return item instanceof MissionBox };

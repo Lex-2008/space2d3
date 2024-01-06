@@ -1,8 +1,10 @@
-import { Food, Iron, Radioactives, ResourceCargo, Water } from "./cargo";
+import { Cargo, Food, Iron, Radioactives, ResourceCargo, Water, isCargoType } from "./cargo";
+import { NormalComponent, isNormalComponentType } from "./components";
 import { shipBaseSpeed } from "./const";
 import { Point } from "./geometry";
+import { types } from "./saveableType";
 import { Ship, ShipData } from "./ship";
-import { shuffle, seq } from "./utils";
+import { shuffle, seq, randomFrom } from "./utils";
 
 export type PlanetType = [name: string, buys: typeof ResourceCargo | null, sells: typeof ResourceCargo, color_in: string, color_out: string];
 
@@ -44,6 +46,9 @@ export class Planet {
 	color_out: string;
 	neighbours: Planet[];
 	base: Ship;
+	deliveryMissionDest: string;
+	deliveryMissionComponent: typeof NormalComponent;
+	cargoMissionComponent: typeof NormalComponent;
 	constructor(x: number, y: number, type_n: number, i: number) {
 		var type = planetTypes[type_n];
 		this.x = x;
@@ -67,6 +72,12 @@ export class Planet {
 		const dest = this.neighbours.shift() as Planet;
 		this.neighbours.push(dest);
 		ship.planTrip(this, dest, departTime);
+	}
+	onEnter() {
+		this.deliveryMissionDest = randomFrom(this.neighbours).name;
+		const noramalComponentTypes = Object.values(types).filter(isNormalComponentType);
+		this.cargoMissionComponent = randomFrom(noramalComponentTypes);
+		this.deliveryMissionComponent = randomFrom(noramalComponentTypes);
 	}
 }
 
