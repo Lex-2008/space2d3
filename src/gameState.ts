@@ -100,7 +100,16 @@ export class GameState {
 }
 
 export function loadGS(data) {
-    gs = GameState.fromJSON(data) || gs;
+    const ret = GameState.fromJSON(data);
+    if (ret) {
+        gs = ret;
+        return true;
+    }
+    return false;
 }
 
-export let gs = new GameState();
+export function newGS() {
+    gs = new GameState();
+}
+
+export let gs: GameState;

@@ -8,7 +8,7 @@ import { componentSize, drawShip, showDate } from "./draw.js";
 import { walkManager } from "./walkManager.js";
 import { WalkMap, Walker } from "./walker.js";
 import { Star } from "./stars.js";
-import { GameState, gs, loadGS } from "./gameState.js";
+import { GameState, gs, loadGS, newGS } from "./gameState.js";
 import { shipBaseSpeed } from "./const.js";
 
 export function gebi(id: string) {
@@ -63,6 +63,7 @@ w.onEnter = onEnter
 window.onresize = () => { gs.walkManager.walker.reposition(true) }
 
 function newGame(shipData?: ShipData) {
+    newGS();
     gs.star = new Star();
     gs.star.addRandomShips(0);
     if (shipData) gs.playerShip = PlayerShip.fromJSON(shipData, gs.star);
@@ -74,8 +75,9 @@ function newGame(shipData?: ShipData) {
 }
 
 function loadGame() {
-    loadGS(JSON.parse(localStorage.space2d3_2));
+    if (!loadGS(JSON.parse(localStorage.space2d3_2))) return false;
     startGame();
+    return true;
 }
 
 function startGame() {
@@ -90,15 +92,20 @@ function startGame() {
     window.gs = gs;
 }
 
-if (localStorage.space2d3_2) {
-    gebi('loadGame').style.display = '';
-    gebi('loadGame').onclick = loadGame;
-}
-
 gebi('newGameEasy').onclick = () => { newGame(newEasyShip) };
 gebi('newGameHard').onclick = () => { newGame() };
 
-(gebi('mainMenu') as HTMLDialogElement).showModal();
+if (localStorage.space2d3_2) {
+    if (!loadGame()) {
+        localStorage.space2d3_2 = prompt('Error loading game. Fix savegame data below or press Cancel to delete savegame and start anew', localStorage.space2d3_2);
+        location.reload();
+    }
+} else (gebi('newGameDialog') as HTMLDialogElement).showModal();
+
+gebi('newGameButton').onclick = () => {
+    gebi('newGameCancelBox').style.display = '';
+    (gebi('newGameDialog') as HTMLDialogElement).showModal();
+};
 
 window.onkeypress = (e) => {
     switch (e.key) {

@@ -17,8 +17,8 @@
 			border-color: ButtonBorder;
 		}
 
-		#mainMenu form,
-		#mainMenu fieldset {
+		#newGameDialog form,
+		#newGameCancelBox {
 			display: flex;
 			flex-direction: column;
 			gap: 1ex;
@@ -53,15 +53,15 @@
 	<style id="currentComponentPage"></style>
 </head>
 <body style="height: calc(100% - 16px);">
-	<dialog id="mainMenu">
+	<dialog id="newGameDialog">
 		<form method="dialog">
-			<fieldset>
-				<legend>New game</legend>
-				<button id="newGameEasy">Easy</button>
-				<button id="newGameHard">Hard</button>
-				<a href="javascript:document.getElementById('aboutHard').showModal();">About this</a>
-			</fieldset>
-			<button id="loadGame" style="display: none;">Load Game</button>
+			<div style="text-align:center;">New game</div>
+			<button id="newGameEasy">Easy</button>
+			<button id="newGameHard">Hard</button>
+			<a href="javascript:document.getElementById('aboutHard').showModal();">About game modes</a>
+			<div id="newGameCancelBox" style="display: none;">
+				<hr style="width: 100%;"><button>Cancel</button>
+			</div>
 		</form>
 	</dialog>
 	<dialog id="aboutHard" style="width: 22em;">
@@ -74,7 +74,7 @@
 	</dialog>
 	<div id="main" style="display: none; height: 100%;">
 		<fieldset style="flex-grow:1">
-			<legend>day <span id="now-day"></span> (<span id="now-date"></span>)</legend>
+			<legend><button id="newGameButton">&#9776;</button> day <span id="now-day"></span> (<span id="now-date"></span>)</legend>
 			<div id="canvasBox" style="position: relative; display:flex; align-items: center; justify-content: center; height: 100%; overflow: hidden; background: black; border: 2px groove ButtonBorder;">
 				<canvas id="myCanvas" style="position: absolute; transition: all 0.166s cubic-bezier(0,.5,.8,.8) 0s; transition-property: top,left;"></canvas>
 				<span id="human" style="font-family:sans;transition: transform 0.166s linear 0s;">A</span>
