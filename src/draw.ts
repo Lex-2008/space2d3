@@ -4,7 +4,7 @@ import { Ship, xywh } from "./ship";
 import { Planet } from "./planets";
 import { Star } from "./stars";
 import { planet_size } from "./const";
-import { gebi } from "./index";
+import { gebi } from "./utils";
 import { gs } from "./gameState";
 import { PlayerShip } from "./playerShip";
 

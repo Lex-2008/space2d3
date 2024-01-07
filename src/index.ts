@@ -7,17 +7,7 @@ import { Walker } from "./walker.js";
 import { Star } from "./stars.js";
 import { gs, loadGS, newGS } from "./gameState.js";
 import { shipBaseSpeed } from "./const.js";
-
-export function gebi(id: string) {
-    const element = document.getElementById(id);
-    if (!element) throw ReferenceError(`element ${id} not found`);
-    return element;
-}
-export function gibi(id: string) {
-    const element = gebi(id);
-    if (!(element instanceof HTMLInputElement)) throw ReferenceError(`element ${id} is not input`);
-    return element;
-}
+import { gebi } from "./utils.js";
 
 if (location.hostname == 'localhost' || location.hostname == '127.0.0.1') {
     new EventSource('/esbuild').addEventListener('change', () => location.reload());

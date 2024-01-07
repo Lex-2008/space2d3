@@ -21,3 +21,13 @@ export function seq(a: number): number[] {
 export function sleep(ms: number) {
 	return new Promise(resolve => setTimeout(resolve, ms));
 }
+export function gebi(id: string) {
+	const element = document.getElementById(id);
+	if (!element) throw ReferenceError(`element ${id} not found`);
+	return element;
+}
+export function gibi(id: string) {
+	const element = gebi(id);
+	if (!(element instanceof HTMLInputElement)) throw ReferenceError(`element ${id} is not input`);
+	return element;
+}
