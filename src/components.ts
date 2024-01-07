@@ -2,12 +2,11 @@ import { Cargo, Fuel, MissionBox, ResourceCargo, Rocket, isMissionBox } from "./
 import { cargoPerCargoBay, cargoPerCargoMission, cargoPerDeliveryMission, maxFreeCargoBays, planet_size, shipBaseSpeed } from "./const"
 import { draw_planet, draw_ships, draw_star } from "./draw"
 import { GameState, gs } from "./gameState"
-import { gebi } from "./utils"
 import { Planet } from "./planets"
 import { PlayerShip } from "./playerShip"
 import { SaveableObject, addType, fromJSON, types } from "./saveableType"
 import { Ship } from "./ship"
-import { randomFrom, randomInt, seq } from "./utils"
+import { randomFrom, randomInt, seq, gebi } from "./utils"
 
 export abstract class Component extends SaveableObject {
     cellName? = ''

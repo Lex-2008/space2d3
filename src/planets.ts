@@ -1,6 +1,5 @@
 import { Cargo, Food, Iron, Radioactives, ResourceCargo, Water, isCargoType } from "./cargo";
 import { NormalComponent, isNormalComponentType } from "./components";
-import { shipBaseSpeed } from "./const";
 import { Point } from "./geometry";
 import { fromJSON, types } from "./saveableType";
 import { Ship, ShipData } from "./ship";
