@@ -2,7 +2,7 @@ import { Cargo, Food, Iron, Radioactives, ResourceCargo, Water, isCargoType } fr
 import { NormalComponent, isNormalComponentType } from "./components";
 import { shipBaseSpeed } from "./const";
 import { Point } from "./geometry";
-import { types } from "./saveableType";
+import { fromJSON, types } from "./saveableType";
 import { Ship, ShipData } from "./ship";
 import { shuffle, seq, randomFrom } from "./utils";
 
@@ -34,6 +34,16 @@ const planetTypes = (function () {
 	return ret;
 })();
 
+export interface PlanetData {
+	'x': number,
+	'y': number,
+	'tp': number,
+	'b'?: ShipData,
+	'dd'?: string,
+	'dc'?: string,
+	'cc'?: string,
+}
+
 export class Planet {
 	x: number; y: number;
 	i: number; //index in star's list of planets
@@ -49,11 +59,8 @@ export class Planet {
 	deliveryMissionDest: string;
 	deliveryMissionComponent: typeof NormalComponent;
 	cargoMissionComponent: typeof NormalComponent;
-	constructor(x: number, y: number, type_n: number, i: number) {
+	constructor(type_n: number) {
 		var type = planetTypes[type_n];
-		this.x = x;
-		this.y = y;
-		this.i = i;
 		this.type = type_n;
 		this.name = type[0];
 		this.buys = type[1];
@@ -64,9 +71,30 @@ export class Planet {
 	distanceTo(p: Point) {
 		return Math.hypot(this.x - p.x, this.y - p.y);
 	}
-	toJSON(): [number, number, number, ShipData] {
-		return [this.x, this.y, this.type, this.base.toJSON()];
+	toJSON(): PlanetData {
+		return {
+			'x': this.x,
+			'y': this.y,
+			'tp': this.type,
+			'b': this.base.toJSON(),
+			'dd': this.deliveryMissionDest,
+			'dc': this.deliveryMissionComponent?.id,
+			'cc': this.cargoMissionComponent?.id,
+		};
 	}
+
+	static fromJSON(data: PlanetData) {
+		const planet = new Planet(data.tp);
+		planet.x = data.x;
+		planet.y = data.y;
+		if (data.b) planet.base = Ship.fromJSON(data.b);
+		else planet.base = Ship.newBase();
+		if (data.dd) planet.deliveryMissionDest = data.dd;
+		if (data.dc) planet.deliveryMissionComponent = types[data.dc] as any as typeof NormalComponent;
+		if (data.cc) planet.cargoMissionComponent = types[data.cc] as any as typeof NormalComponent;
+		return planet;
+	}
+
 	dispatch(ship: Ship, departTime: number) {
 		//send the ship in a random direction
 		const dest = this.neighbours.shift() as Planet;
@@ -90,7 +118,7 @@ export function makePlanets(size: number) {
 	var thisPlanetTypes = shuffle(seq(planetTypes.length));
 	for (var _n = 0; _n < 100; _n++) {
 		var bad = false;
-		var ret: [number, number, number][] = [];
+		var ret: PlanetData[] = [];
 		var xx = shuffle(seq(size));
 		var yy = shuffle(seq(size));
 		// console.log(_n,xx,yy);
@@ -99,7 +127,7 @@ export function makePlanets(size: number) {
 			if (isBad(xx[i] + 0.5, yy[i] + 0.5, size)) {
 				bad = true;
 			}
-			ret.push([xx[i] + 0.5, yy[i] + 0.5, thisPlanetTypes[i]]);
+			ret.push({ 'x': xx[i] + 0.5, 'y': yy[i] + 0.5, 'tp': thisPlanetTypes[i] });
 		}
 		if (!bad) return ret;
 	}

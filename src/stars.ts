@@ -1,7 +1,7 @@
 import { ResourceCargo, isResourceType } from "./cargo.js";
 import { planet_size, shipBaseSpeed } from "./const.js";
 import { lineCrossesObj } from "./geometry.js";
-import { makePlanets, Planet, PlanetType } from "./planets.js";
+import { makePlanets, Planet, PlanetData, PlanetType } from "./planets.js";
 import { PlayerShip } from "./playerShip.js";
 import { types } from "./saveableType.js";
 import { Ship, ShipData } from "./ship.js";
@@ -40,7 +40,7 @@ export interface StarData {
 	c: string,
 	sz: number,
 	// n: number[] | false,
-	p: [number, number, number, ShipData?][] | false,
+	p: PlanetData[] | false,
 	sh: ShipData[] | false,
 	// v: boolean,
 }
@@ -88,13 +88,10 @@ export class Star {
 		// }
 		this.grid = mkgrid(this, this.size);
 		if (!load.p) load.p = makePlanets(this.size); //from planets.js
-		this.planets = load.p.map((x, i) => {
-			const p = new Planet(x[0], x[1], x[2], i);
-			if (x[3]) p.base = Ship.fromJSON(x[3]);
-			else p.base = Ship.newBase();
-			return p;
-		});
-		for (var planet of this.planets) {
+		this.planets = load.p.map(x => Planet.fromJSON(x));
+		for (let i = 0; i < this.planets.length; i++) {
+			let planet = this.planets[i];
+			planet.i = i;
 			// add neighbours
 			planet.neighbours = shuffle(this.planets.filter(p => p != planet && !this.pathCollides(p, planet)));
 			// add planet to grid

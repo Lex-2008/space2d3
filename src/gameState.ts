@@ -65,13 +65,13 @@ export class GameState {
         this.tick();
     };
 
-    arrive() {
+    arrive(noOnEnter?: boolean) {
         this.playerShip.onPlanet = this.playerShip.toPlanet;
         this.playerShip.x = this.playerShip.onPlanet.x;
         this.playerShip.y = this.playerShip.onPlanet.y;
         // this.playerShip.flying = false;
         this.timeFlies = false;
-        this.playerShip.onPlanet.onEnter();
+        if (!noOnEnter) this.playerShip.onPlanet.onEnter();
         this.walker.attach(this.playerShip.onPlanet.base);
         setStatus(`Docked to base at ${this.playerShip.onPlanet.name} planet`);
         localStorage.space2d3_2 = JSON.stringify(this.toJSON());
@@ -79,14 +79,14 @@ export class GameState {
 
     toJSON() {
         return {
-            'v': 1,
+            'v': 2,
             's': this.star.toJSON(),
             'n': this.now,
         }
     }
 
     static fromJSON(a): GameState | false {
-        if (a.v != 1) return false;
+        if (a?.v != 2) return false;
         const gs = new GameState();
         gs.star = new Star(a.s);
         const playerShips = gs.star.ships.filter(isPlayerShip);

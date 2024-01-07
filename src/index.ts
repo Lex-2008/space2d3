@@ -67,6 +67,7 @@ function newGame(shipData?: ShipData) {
     gs.star.ships.push(gs.playerShip);
     gs.playerShip.planTrip({ x: gs.star.planets[0].x - shipBaseSpeed, y: gs.star.planets[0].y }, gs.star.planets[0], -1);
     gs.now = 0;
+    gs.star.planets[0].onEnter();
     startGame();
 }
 
@@ -82,7 +83,7 @@ function startGame() {
     w.jumpTo(w.oneShipData.x0 + 1, w.oneShipData.y0 + 1);
     gs.walker = w;
     gebi('main').style.display = 'flex';
-    gs.arrive();
+    gs.arrive(true);
     showDate(Math.floor(gs.now));
     window.gs = gs;
 }
@@ -92,7 +93,7 @@ gebi('newGameHard').onclick = () => { newGame() };
 
 if (localStorage.space2d3_2) {
     if (!loadGame()) {
-        localStorage.space2d3_2 = prompt('Error loading game. Fix savegame data below or press Cancel to delete savegame and start anew', localStorage.space2d3_2);
+        localStorage.space2d3_2 = prompt('Error loading game. Fix savegame data below or press Cancel to delete savegame and start anew', localStorage.space2d3_2) || '';
         location.reload();
     }
 } else (gebi('newGameDialog') as HTMLDialogElement).showModal();
