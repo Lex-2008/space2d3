@@ -112,6 +112,4 @@ function onEnter(c?: Component) {
     c.onEnter(gs)
 }
 
-export function setStatus(s: string) {
-    gebi('status').innerText = s;
-}
+

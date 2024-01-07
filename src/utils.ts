@@ -31,3 +31,7 @@ export function gibi(id: string) {
 	if (!(element instanceof HTMLInputElement)) throw ReferenceError(`element ${id} is not input`);
 	return element;
 }
+
+export function setStatus(s: string) {
+	gebi('status').innerText = s;
+}

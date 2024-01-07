@@ -1,5 +1,5 @@
 import { showDate } from "./draw";
-import { setStatus } from "./index";
+import { setStatus } from "./utils";
 import { PlayerShip, isPlayerShip } from "./playerShip";
 import { Star } from "./stars";
 import { Walker } from "./walker";

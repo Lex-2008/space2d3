@@ -1,5 +1,5 @@
 import { gs } from "./gameState";
-import { setStatus } from "./index";
+import { setStatus } from "./utils";
 import { Planet } from "./planets";
 import { Ship, ShipData } from "./ship";
 import { Star } from "./stars";
