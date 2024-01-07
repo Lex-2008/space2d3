@@ -4,7 +4,6 @@ import { Ship, xywh } from "./ship";
 import { Planet } from "./planets";
 import { Star } from "./stars";
 import { planet_size } from "./const";
-import { gebi } from "./utils";
 import { gs } from "./gameState";
 import { PlayerShip } from "./playerShip";
 
@@ -152,18 +151,3 @@ export function draw_ships(ctx: CanvasRenderingContext2D, ships: Ship[], myRadar
             draw_ship(ctx, ship, cell_size, myRadars);
     }
 }
-
-export function showDate(today: number) {
-    // console.log('showTime', now);
-    gebi('now-day').innerText = (today + 1).toString();
-    // const date = Math.floor(now);
-    const year = Math.floor(today / 300) + 3000;
-    const month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov'][Math.floor((today % 300) / 30)];
-    const day = Math.floor(today % 30) + 1;
-    gebi('now-date').innerText = `${day} ${month} ${year}`;
-    // const time = now % 1;
-    // gebi('now-hr').innerText = Math.floor(time * 25);
-    // gebi('now-min').innerText = Math.round((time * 25 * 50) % 25);
-}
-
-// setInterval(showTime, 1000);

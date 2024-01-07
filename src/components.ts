@@ -1,6 +1,6 @@
 import { Cargo, Fuel, MissionBox, ResourceCargo, Rocket, isMissionBox } from "./cargo"
 import { cargoPerCargoBay, cargoPerCargoMission, cargoPerDeliveryMission, maxFreeCargoBays, planet_size, shipBaseSpeed } from "./const"
-import { draw_planet, draw_ships, draw_star, showDate } from "./draw"
+import { draw_planet, draw_ships, draw_star } from "./draw"
 import { GameState, gs } from "./gameState"
 import { gebi } from "./utils"
 import { Planet } from "./planets"

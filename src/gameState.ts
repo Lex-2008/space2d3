@@ -1,5 +1,4 @@
-import { showDate } from "./draw";
-import { setStatus } from "./utils";
+import { setStatus, showDate } from "./utils";
 import { PlayerShip, isPlayerShip } from "./playerShip";
 import { Star } from "./stars";
 import { Walker } from "./walker";

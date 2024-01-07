@@ -2,12 +2,11 @@
 import { PlayerShip } from "./playerShip.js";
 import { ShipData } from "./ship.js";
 import { Component } from "./components.js";
-import { showDate } from "./draw.js";
+import { gebi, showDate } from "./utils.js";
 import { Walker } from "./walker.js";
 import { Star } from "./stars.js";
 import { gs, loadGS, newGS } from "./gameState.js";
 import { shipBaseSpeed } from "./const.js";
-import { gebi } from "./utils.js";
 
 if (location.hostname == 'localhost' || location.hostname == '127.0.0.1') {
     new EventSource('/esbuild').addEventListener('change', () => location.reload());
@@ -111,5 +110,3 @@ function onEnter(c?: Component) {
         gebi('componentLegend').innerText = `${c.typename}`
     c.onEnter(gs)
 }
-
-

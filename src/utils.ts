@@ -35,3 +35,14 @@ export function gibi(id: string) {
 export function setStatus(s: string) {
 	gebi('status').innerText = s;
 }
+
+export function showDate(today: number) {
+	gebi('now-day').innerText = (today + 1).toString();
+	const year = Math.floor(today / 300) + 3000;
+	const month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov'][Math.floor((today % 300) / 30)];
+	const day = Math.floor(today % 30) + 1;
+	gebi('now-date').innerText = `${day} ${month} ${year}`;
+	// const time = now % 1;
+	// gebi('now-hr').innerText = Math.floor(time * 25);
+	// gebi('now-min').innerText = Math.round((time * 25 * 50) % 25);
+}
