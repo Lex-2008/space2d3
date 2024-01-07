@@ -21,6 +21,7 @@ export class Fuel extends UsefulCargo {
 addType(Fuel, 'Fuel')
 
 export abstract class ResourceCargo extends Cargo { }
+export function isResourceType(type: typeof SaveableObject): type is typeof ResourceCargo { return type.prototype instanceof ResourceCargo };
 
 export class Water extends ResourceCargo {
     static readonly color = 'blue';

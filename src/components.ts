@@ -100,7 +100,7 @@ function drawRadar(ts?: number) {
     // TODO: draw planets only once, and redraw only ships
     // (maybe on another canvas)
     draw_star(ctx, gs.star);
-    const ship = gs.walkManager.walker.map.map[gs.walkManager.walker.x][gs.walkManager.walker.y].ship;
+    const ship = gs.walker.map[gs.walker.x][gs.walker.y].ship;
     if (ship === undefined) return;
     draw_ships(ctx, gs.star.ships, ship.componentTypes[Radar.id]);
 }
@@ -334,7 +334,7 @@ export class MissionComputer extends BaseOnlyComputerComponent {
         gs.playerShip.countComponents();
         gs.playerShip.countCargo();// we've added a cargo box
         gs.playerShip.putMissionBox(planet.name, planet.deliveryMissionDest, t.deliveryMissionGivesBoxes);
-        gs.walkManager.reattach(gs.walkCTX);
+        gs.walker.reattach();
         t.showDiv(0, 'Started');
     }
     deliveryMissionCompleteSelect(n: number, t) {
@@ -346,7 +346,7 @@ export class MissionComputer extends BaseOnlyComputerComponent {
         gs.playerShip.countComponents();
         gs.playerShip.countCargo();// we might've added a cargo box
         gs.playerShip.getMissionBox(planet.name, t.missionBoxesToHere.length);
-        gs.walkManager.reattach(gs.walkCTX);
+        gs.walker.reattach();
         t.showDiv(0, 'Completed');
         const noramalComponentTypes = Object.values(types).filter(isNormalComponentType);
         planet.cargoMissionComponent = randomFrom(noramalComponentTypes);
@@ -360,7 +360,7 @@ export class MissionComputer extends BaseOnlyComputerComponent {
         gs.playerShip.countComponents();
         gs.playerShip.countCargo();// we might've added a cargo box
         gs.playerShip.getCargo(planet.buys, cargoPerCargoMission);
-        gs.walkManager.reattach(gs.walkCTX);
+        gs.walker.reattach();
         t.showDiv(1, 'Completed');
         const noramalComponentTypes = Object.values(types).filter(isNormalComponentType);
         planet.cargoMissionComponent = randomFrom(noramalComponentTypes);

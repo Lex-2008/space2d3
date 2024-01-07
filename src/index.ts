@@ -1,14 +1,11 @@
 //import { } from "./draw.js";
 import { PlayerShip } from "./playerShip.js";
-import { Ship, ShipData } from "./ship.js";
-import { CargoBay, Component } from "./components.js";
-import { fromJSON, types } from "./saveableType.js";
-import { Food, Iron, Radioactives, Rocket, Water } from "./cargo.js";
-import { componentSize, drawShip, showDate } from "./draw.js";
-import { walkManager } from "./walkManager.js";
-import { WalkMap, Walker } from "./walker.js";
+import { ShipData } from "./ship.js";
+import { Component } from "./components.js";
+import { showDate } from "./draw.js";
+import { Walker } from "./walker.js";
 import { Star } from "./stars.js";
-import { GameState, gs, loadGS, newGS } from "./gameState.js";
+import { gs, loadGS, newGS } from "./gameState.js";
 import { shipBaseSpeed } from "./const.js";
 
 export function gebi(id: string) {
@@ -50,8 +47,6 @@ const newEasyShip = { "a": false, "n": "Your Ship", "c": "white", "o": [0, 0], "
 //var s = Ship.randomShip(1);
 //var m = new WalkMap(0, 0)
 var w = new Walker()
-var wm = new walkManager()
-wm.walker = w;
 
 var c = gebi("myCanvas") as HTMLCanvasElement;
 var ctx = c.getContext("2d") as CanvasRenderingContext2D;
@@ -59,8 +54,9 @@ var ctx = c.getContext("2d") as CanvasRenderingContext2D;
 w.box = gebi('canvasBox')
 w.human = gebi('human')
 w.canvas = c
+w.ctx = ctx
 w.onEnter = onEnter
-window.onresize = () => { gs.walkManager.walker.reposition(true) }
+window.onresize = () => { gs.walker.reposition(true) }
 
 function newGame(shipData?: ShipData) {
     newGS();
@@ -81,11 +77,10 @@ function loadGame() {
 }
 
 function startGame() {
-    wm.myShip = gs.playerShip;
-    wm.drawMyShip(ctx);
-    w.jumpTo(wm.oneShipData.x0 + 1, wm.oneShipData.y0 + 1);
-    gs.walkManager = wm;
-    gs.walkCTX = ctx;
+    w.myShip = gs.playerShip;
+    w.drawMyShip();
+    w.jumpTo(w.oneShipData.x0 + 1, w.oneShipData.y0 + 1);
+    gs.walker = w;
     gebi('main').style.display = 'flex';
     gs.arrive();
     showDate(Math.floor(gs.now));

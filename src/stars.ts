@@ -1,4 +1,4 @@
-import { ResourceCargo } from "./cargo.js";
+import { ResourceCargo, isResourceType } from "./cargo.js";
 import { planet_size, shipBaseSpeed } from "./const.js";
 import { lineCrossesObj } from "./geometry.js";
 import { makePlanets, Planet, PlanetType } from "./planets.js";
@@ -132,8 +132,8 @@ export class Star {
 	computeRareResources(planets?: Planet[]) {
 		if (planets === undefined) planets = this.planets;
 		const producedResources = planets.map(planet => planet.sells);
-		const rareResources = Object.values(types).filter(resource => resource instanceof ResourceCargo && !producedResources.includes(resource)) as (typeof ResourceCargo)[];
-		const abundantResources = planets.filter(planet => planet.buys === null).map(planet => planet.sells) as (typeof ResourceCargo)[];
+		const rareResources = Object.values(types).filter(isResourceType).filter(resource => !producedResources.includes(resource));
+		const abundantResources = planets.filter(planet => planet.buys === null).map(planet => planet.sells);
 		return {
 			'exotic': rareResources,
 			'abundant': abundantResources

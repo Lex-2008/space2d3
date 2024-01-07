@@ -1,16 +1,13 @@
 import { showDate } from "./draw";
 import { setStatus } from "./index";
 import { PlayerShip, isPlayerShip } from "./playerShip";
-import { fromJSON } from "./saveableType";
-import { Ship } from "./ship";
 import { Star } from "./stars";
-import { walkManager } from "./walkManager";
+import { Walker } from "./walker";
 
 export class GameState {
     star: Star;
     playerShip: PlayerShip;
-    walkManager: walkManager;
-    walkCTX: CanvasRenderingContext2D;
+    walker: Walker;
     now = 0;
     lastTickTimestamp: number;
     lastDate: number;
@@ -63,7 +60,7 @@ export class GameState {
         this.timeFlies = true;
         // this.playerShip.flying = true;
         this.playerShip.onPlanet = null;
-        this.walkManager.detach(this.walkCTX);
+        this.walker.detach();
         this.lastDate = -1;
         this.tick();
     };
@@ -75,7 +72,7 @@ export class GameState {
         // this.playerShip.flying = false;
         this.timeFlies = false;
         this.playerShip.onPlanet.onEnter();
-        this.walkManager.attach(this.walkCTX, this.playerShip.onPlanet.base);
+        this.walker.attach(this.playerShip.onPlanet.base);
         setStatus(`Docked to base at ${this.playerShip.onPlanet.name} planet`);
         localStorage.space2d3_2 = JSON.stringify(this.toJSON());
     };
