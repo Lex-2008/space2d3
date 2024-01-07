@@ -69,11 +69,11 @@ export class CargoBay extends NormalComponent {
     }
     static fromJSON(type: typeof SaveableObject, data: { c: Array<{ 't': string }> }) {
         let a = new CargoBay();
-        a.cargo = data.c.map((x: { t: string }) => fromJSON(x));
+        a.cargo = data.c.map((x: { t: string }) => fromJSON(x) as Cargo);
         return a;
     }
     onEnter(gs: GameState) {
-        (document.querySelector('#CargoBay ul') as HTMLUListElement).innerHTML = this.cargo.map(x => `<li>${x.typename}</li>`).join('');
+        (document.querySelector('#CargoBay ul') as HTMLUListElement).innerHTML = this.cargo.map(x => `<li>${x.toText()}</li>`).join('');
         (document.getElementById('CargoBay_Empty') as HTMLDivElement).style.display = (this.cargo.length == 0) ? '' : 'none';
         (document.getElementById('CargoBay_NonEmpty') as HTMLDivElement).style.display = (this.cargo.length == 0) ? 'none' : '';
     }
@@ -288,6 +288,9 @@ export class MissionComputer extends BaseOnlyComputerComponent {
             this.fillRowSelectButtons('MissionComputer_Complete_component_select', this.deliveryMissionCompleteSelect);
         } else if (missionBoxesFromHere.length) {
             this.showDiv(0, 'InProgress');
+            const allDests = missionBoxesFromHere.map(box => box.to);
+            const uniqDests = [...new Set(allDests)];
+            gebi('MissionComputer_InProgress_to').innerText = uniqDests.join(', ');
         } else if (gs.playerShip.freeCargo < cargoPerDeliveryMission && gs.playerShip.componentTypes[CargoBay.id] >= maxFreeCargoBays) {
             this.showDiv(0, 'NoSpace');
         } else {
@@ -298,7 +301,7 @@ export class MissionComputer extends BaseOnlyComputerComponent {
             } else {
                 // Note that here we use cargoPerCargoBay. This is not a mistake. If you have 3 empty cargo bays,
                 // we don't want to occupy them completely with mission cargo.
-                this.deliveryMissionGivesBoxes = Math.floor(gs.playerShip.freeCargo / cargoPerCargoBay) * cargoPerDeliveryMission;
+                this.deliveryMissionGivesBoxes = Math.max(1, Math.floor(gs.playerShip.freeCargo / cargoPerCargoBay)) * cargoPerDeliveryMission;
             }
             gebi('MissionComputer_Offer_n').innerText = this.deliveryMissionGivesBoxes.toString();
             gebi('MissionComputer_Offer_to').innerText = planet.deliveryMissionDest;
