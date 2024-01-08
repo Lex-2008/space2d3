@@ -1,9 +1,10 @@
-import { Cargo, Food, Iron, Radioactives, ResourceCargo, Water, isCargoType } from "./cargo";
-import { NormalComponent, isNormalComponentType } from "./components";
+import { Cargo, Food, Iron, MissionBox, Radioactives, ResourceCargo, Water, isCargoType, isMissionBox } from "./cargo";
+import { NormalComponent, isCargoBay, isNormalComponentType } from "./components";
+import { gs } from "./gameState";
 import { Point } from "./geometry";
 import { fromJSON, types } from "./saveableType";
 import { Ship, ShipData } from "./ship";
-import { shuffle, seq, randomFrom } from "./utils";
+import { shuffle, seq, randomFrom, randomInt } from "./utils";
 
 export type PlanetType = [name: string, buys: typeof ResourceCargo | null, sells: typeof ResourceCargo, color_in: string, color_out: string];
 
@@ -40,6 +41,8 @@ export interface PlanetData {
 	'b'?: ShipData,
 	'dd'?: string,
 	'dc'?: string,
+	'dr'?: number,
+	'df'?: number,
 	'cc'?: string,
 }
 
@@ -57,6 +60,8 @@ export class Planet {
 	base: Ship;
 	deliveryMissionDest: string;
 	deliveryMissionComponent: typeof NormalComponent;
+	deliveryMissionRockets: number;
+	deliveryMissionFuel: number;
 	cargoMissionComponent: typeof NormalComponent;
 	constructor(type_n: number) {
 		var type = planetTypes[type_n];
@@ -78,6 +83,8 @@ export class Planet {
 			'b': this.base.toJSON(),
 			'dd': this.deliveryMissionDest,
 			'dc': this.deliveryMissionComponent?.id,
+			'dr': this.deliveryMissionRockets,
+			'df': this.deliveryMissionFuel,
 			'cc': this.cargoMissionComponent?.id,
 		};
 	}
@@ -90,6 +97,8 @@ export class Planet {
 		else planet.base = Ship.newBase();
 		if (data.dd) planet.deliveryMissionDest = data.dd;
 		if (data.dc) planet.deliveryMissionComponent = types[data.dc] as any as typeof NormalComponent;
+		if (data.dr) planet.deliveryMissionRockets = data.dr;
+		if (data.df) planet.deliveryMissionFuel = data.df;
 		if (data.cc) planet.cargoMissionComponent = types[data.cc] as any as typeof NormalComponent;
 		return planet;
 	}
@@ -105,6 +114,17 @@ export class Planet {
 		const noramalComponentTypes = Object.values(types).filter(isNormalComponentType);
 		this.cargoMissionComponent = randomFrom(noramalComponentTypes);
 		this.deliveryMissionComponent = randomFrom(noramalComponentTypes);
+		const allCargoBays = gs.playerShip.rows.flat().filter(isCargoBay);
+		let missionBoxes: MissionBox[] = [];
+		for (let cargoBay of allCargoBays) {
+			missionBoxes = missionBoxes.concat(cargoBay.cargo.filter(isMissionBox));
+		}
+		const missionBoxesToHere = missionBoxes.filter(box => box.to === this.name);
+		if (missionBoxesToHere.length) {
+			const rewardCargos = Math.max(1, Math.floor(missionBoxesToHere.length / 2));
+			this.deliveryMissionRockets = randomInt(0, rewardCargos);
+			this.deliveryMissionFuel = rewardCargos - this.deliveryMissionRockets;
+		}
 	}
 }
 

@@ -235,8 +235,6 @@ export class MissionComputer extends BaseOnlyComputerComponent {
     missionBoxesToHere: MissionBox[];
     deliveryMissionGivesBoxes: number;
     deliveryMissionGivesFreeCargoBay: boolean;
-    rewardRockets: number;
-    rewardFuel: number;
     divsShown = ['', ''];
     showDiv(n: number, id: string) {
         this.divsShown[n] = id;
@@ -263,12 +261,10 @@ export class MissionComputer extends BaseOnlyComputerComponent {
         if (this.missionBoxesToHere.length) {
             this.showDiv(0, 'Complete');
             const rewardCargos = Math.max(1, Math.floor(this.missionBoxesToHere.length / 2));
-            this.rewardRockets = randomInt(0, rewardCargos);
-            this.rewardFuel = rewardCargos - this.rewardRockets;
             gebi('MissionComputer_Complete_resource').innerText = `${rewardCargos} ${planet.sells.id}`;
             gebi('MissionComputer_Complete_cargo').innerText =
-                [this.rewardRockets ? `${this.rewardRockets} Rockets` : '',
-                this.rewardFuel ? `${this.rewardFuel} Fuel` : ''].filter(x => !!x).join(' and ');
+                [planet.deliveryMissionRockets ? `${planet.deliveryMissionRockets} Rockets` : '',
+                planet.deliveryMissionFuel ? `${planet.deliveryMissionFuel} Fuel` : ''].filter(x => !!x).join(' and ');
             gebi('MissionComputer_Complete_resource').onclick = () => {
                 gs.playerShip.getMissionBox(planet.name, this.missionBoxesToHere.length);
                 gs.playerShip.putCargo(planet.sells, rewardCargos);
@@ -276,8 +272,8 @@ export class MissionComputer extends BaseOnlyComputerComponent {
             }
             gebi('MissionComputer_Complete_cargo').onclick = () => {
                 gs.playerShip.getMissionBox(planet.name, this.missionBoxesToHere.length);
-                gs.playerShip.putCargo(Rocket, this.rewardRockets);
-                gs.playerShip.putCargo(Fuel, this.rewardFuel);
+                gs.playerShip.putCargo(Rocket, planet.deliveryMissionRockets);
+                gs.playerShip.putCargo(Fuel, planet.deliveryMissionFuel);
                 this.showDiv(0, 'Completed');
             }
             // TODO: if player has 5 boxes with "total"==5 and 10 boxes with "total"==10
