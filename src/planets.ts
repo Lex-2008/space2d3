@@ -1,4 +1,4 @@
-import { Cargo, Food, Iron, MissionBox, Radioactives, ResourceCargo, Water, isCargoType, isMissionBox } from "./cargo";
+import { Cargo, Food, Fuel, Iron, MissionBox, Radioactives, ResourceCargo, Rocket, Water, isCargoType, isMissionBox } from "./cargo";
 import { NormalComponent, isCargoBay, isNormalComponentType } from "./components";
 import { gs } from "./gameState";
 import { Point } from "./geometry";
@@ -23,6 +23,10 @@ const planetTypes = (function () {
 		//['dry', Water, null, 'blue', 'white'],
 		//['mining', null, Iron, 'olive', 'yellow'],
 		//['populated', Food, null, 'green', 'lime'],
+		['desert', Water, Fuel, 'blue', 'purple'],
+		['factory', Iron, Rocket, 'yellow', 'orange'],
+		// ['power', Radioactives, Battery, 'red', 'lightblue'],
+		['war', Rocket, Fuel, 'orange', 'purple'],
 	];
 
 	for (var buy = 0; buy < 4; buy++) {
