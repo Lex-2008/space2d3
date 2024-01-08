@@ -56,8 +56,7 @@ function newGame(shipData?: ShipData) {
     gs.star.ships.push(gs.playerShip);
     gs.playerShip.planTrip({ x: gs.star.planets[0].x - shipBaseSpeed, y: gs.star.planets[0].y }, gs.star.planets[0], -1);
     gs.now = 0;
-    gs.star.planets[0].onEnter();
-    startGame();
+    startGame(true);
 }
 
 function loadGame() {
@@ -66,13 +65,13 @@ function loadGame() {
     return true;
 }
 
-function startGame() {
+function startGame(newGame = false) {
     w.myShip = gs.playerShip;
     w.drawMyShip();
     w.jumpTo(w.oneShipData.x0 + 1, w.oneShipData.y0 + 1);
     gs.walker = w;
     gebi('main').style.display = 'flex';
-    gs.arrive(true);
+    gs.arrive(!newGame, newGame); //do not trigger onEnter on loadGame (you're supposed to reused saved data instead of regenerating new one); do not save on new game
     showDate(Math.floor(gs.now));
     window.gs = gs;
 }

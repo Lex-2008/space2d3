@@ -64,7 +64,7 @@ export class GameState {
         this.tick();
     };
 
-    arrive(noOnEnter?: boolean) {
+    arrive(noOnEnter?: boolean, noSave?: boolean) {
         this.playerShip.onPlanet = this.playerShip.toPlanet;
         this.playerShip.x = this.playerShip.onPlanet.x;
         this.playerShip.y = this.playerShip.onPlanet.y;
@@ -73,7 +73,7 @@ export class GameState {
         if (!noOnEnter) this.playerShip.onPlanet.onEnter();
         this.walker.attach(this.playerShip.onPlanet.base);
         setStatus(`Docked to base at ${this.playerShip.onPlanet.name} planet`);
-        localStorage.space2d3_2 = JSON.stringify(this.toJSON());
+        if (!noSave) localStorage.space2d3_2 = JSON.stringify(this.toJSON());
     };
 
     toJSON() {
