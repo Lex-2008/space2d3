@@ -132,7 +132,7 @@ export class Walker {
 
         drawShip(this.ctx, c.ax0, c.ay0, a, this.map);
         drawShip(this.ctx, c.bx0, c.by0, b, this.map);
-        drawAirlock(this.ctx, c.airlock_x, c.airlock_y, this.map);
+        drawAirlock(this.ctx, c.airlock_x, c.airlock_y, a, b, this.map);
     }
 
     drawMyShip() {

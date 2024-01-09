@@ -92,13 +92,10 @@ export class Radar extends NormalComponent {
 addType(Radar, 'Radar');
 
 function drawRadar(ts?: number) {
-    const c = document.querySelector('#Radar canvas') as HTMLCanvasElement
+    const c = gebi('shipsCanvas') as HTMLCanvasElement;
     if (c.offsetParent === null) return;
     const ctx = c.getContext("2d") as CanvasRenderingContext2D;
     if (gs.tick(ts)) window.requestAnimationFrame(drawRadar);
-    // TODO: draw planets only once, and redraw only ships
-    // (maybe on another canvas)
-    draw_star(ctx, gs.star);
     const ship = gs.walker.map[gs.walker.x][gs.walker.y].ship;
     if (ship === undefined) return;
     draw_ships(ctx, gs.star.ships, ship.componentTypes[Radar.id]);

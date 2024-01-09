@@ -7,6 +7,7 @@ import { Walker } from "./walker.js";
 import { Star } from "./stars.js";
 import { gs, loadGS, newGS } from "./gameState.js";
 import { shipBaseSpeed } from "./const.js";
+import { draw_star } from "./draw.js";
 
 if (location.hostname == 'localhost' || location.hostname == '127.0.0.1') {
     new EventSource('/esbuild').addEventListener('change', () => location.reload());
@@ -31,10 +32,11 @@ if (location.hostname == 'localhost' || location.hostname == '127.0.0.1') {
 // newEasyShip.toTime = 0;
 // console.log(JSON.stringify(newEasyShip.toJSON()));
 
-const newEasyShip = { "a": false, "n": "Your Ship", "c": "white", "o": [0, 0], "r": [[{ "t": "CargoBay", "c": [{ "t": "Water" }, { "t": "Food" }, { "t": "Iron" }, { "t": "Radioactives" }] }], [{ "t": "Ballast" }]], "frX": 0, "frY": 0, "frT": -1, "toP": 0, "toT": 0, "p": true }
+const newEasyShip = { "a": false, "n": "Your Ship", "c": "#5E5E5E", "o": [0, 0], "r": [[{ "t": "CargoBay", "c": [{ "t": "Water" }, { "t": "Food" }, { "t": "Iron" }, { "t": "Radioactives" }] }], [{ "t": "Ballast" }]], "frX": 0, "frY": 0, "frT": -1, "toP": 0, "toT": 0, "p": true }
+if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    newEasyShip.c = '#919191';
+}
 
-//var s = Ship.randomShip(1);
-//var m = new WalkMap(0, 0)
 var w = new Walker()
 
 var c = gebi("myCanvas") as HTMLCanvasElement;
@@ -73,6 +75,9 @@ function startGame(newGame = false) {
     gebi('main').style.display = 'flex';
     gs.arrive(!newGame, newGame); //do not trigger onEnter on loadGame (you're supposed to reused saved data instead of regenerating new one); do not save on new game
     showDate(Math.floor(gs.now));
+    const c = gebi('systemCanvas') as HTMLCanvasElement;
+    const ctx = c.getContext("2d") as CanvasRenderingContext2D;
+    draw_star(ctx, gs.star);
     window.gs = gs;
 }
 

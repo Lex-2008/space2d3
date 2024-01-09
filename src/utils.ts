@@ -1,3 +1,5 @@
+import { RGBtoL, LtoRGB } from "./colorCalc";
+
 export function randomInt(a: number, b: number): number {
 	if (a > b) [a, b] = [b, a];
 	return Math.floor(Math.random() * (b - a + 1)) + a;
@@ -45,4 +47,10 @@ export function showDate(today: number) {
 	// const time = now % 1;
 	// gebi('now-hr').innerText = Math.floor(time * 25);
 	// gebi('now-min').innerText = Math.round((time * 25 * 50) % 25);
+}
+
+export function calcColor2(hex: string) {
+	const l = RGBtoL(hex);
+	if (l < 50) return LtoRGB(Math.min(l + 50, 100));
+	else return LtoRGB(Math.max(l - 50, 0));
 }

@@ -5,7 +5,7 @@ import { Point } from "./geometry"
 import { Planet } from "./planets"
 import { fromJSON, types } from "./saveableType"
 import { Star } from "./stars"
-import { randomFrom, randomInt, shuffle } from "./utils"
+import { calcColor2, randomFrom, randomInt, shuffle } from "./utils"
 
 export interface xywh {
     'x': number,
@@ -32,6 +32,7 @@ export interface ShipData {
 export class Ship {
     name: string;
     color: string;
+    color2: string;
     isAlien: boolean = false
     rows: Array<Array<Component>> = []
     offsets: Array<number> = []
@@ -206,6 +207,7 @@ export class Ship {
         ship.isAlien = data.a;
         ship.name = data.n;
         ship.color = data.c;
+        ship.color2 = '#' + calcColor2(data.c.substr(1));
         ship.offsets = data.o;
         ship.rows = [];
         for (let row = 0; row < data.r.length; row++) {
@@ -216,6 +218,7 @@ export class Ship {
         }
         ship.fromPoint = { 'x': data.frX, 'y': data.frY };
         ship.fromTime = data.frT;
+        ship.toTime = data.toT;
         if (star) ship.toPlanet = star.planets[data.toP];
         // ship.balanceBallast();
         ship.fillBallastOpposite();
@@ -307,7 +310,9 @@ export class Ship {
         const componentTypes = noramalComponentTypes.concat(computerTypes);
         const cargoTypes = Object.values(types).filter(isCargoType);
         if (ship === undefined) ship = new Ship();
-        ship.color = randomFrom(shipColors);
+        const color = randomFrom(shipColors);
+        ship.color = '#' + color;
+        ship.color2 = '#' + calcColor2(color);
         ship.rows = [[], [], [], []]
         ship.offsets = [0, 0, 0, 0]
         for (let i = 0; i < size; i++) {
@@ -332,7 +337,9 @@ export class Ship {
 
     static newBase() {
         const ship = new Ship();
-        ship.color = 'black';
+        const color = randomFrom(shipColors);
+        ship.color = '#' + color;
+        ship.color2 = '#' + calcColor2(color);
         ship.rows = [[], []];
         const components = shuffle([new NavigationComputer(), new Radar(), new TradingComputer(), new MissionComputer()])
         for (let component of components)

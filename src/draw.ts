@@ -6,25 +6,31 @@ import { Star } from "./stars";
 import { planet_size } from "./const";
 import { gs } from "./gameState";
 import { PlayerShip } from "./playerShip";
+import { gebi } from "./utils";
 
 export const componentSize = 50
 export const componentOffset = 5
 
 function drawComponent(ctx: CanvasRenderingContext2D, x: number, y: number, ship: Ship, component: Component, map: WalkMap) {
+    const textOffset = 5;
+    ctx.beginPath();
     if (ship.isAlien) {
         ctx.rect(x * componentSize, y * componentSize + componentOffset, componentSize, componentSize - 2 * componentOffset);
     } else {
         ctx.rect(x * componentSize + componentOffset, y * componentSize, componentSize - 2 * componentOffset, componentSize);
     }
-    ctx.strokeStyle = "white";
-    ctx.fillStyle = "white";
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = ship.color;
+    ctx.fillStyle = ship.color2;
+    ctx.fill();
     ctx.stroke();
     ctx.textBaseline = 'top';
-    ctx.fillText(component.cellName || '', x * componentSize + componentOffset, y * componentSize)
+    ctx.fillStyle = ship.color;
+    ctx.fillText(component.cellName || '', x * componentSize + componentOffset + textOffset, y * componentSize + textOffset)
     let componentTitle = component.typename[0];
     if (component instanceof ComputerComponent) componentTitle += 'C';
     if (component instanceof Cloak) componentTitle += 'l';
-    ctx.fillText(componentTitle, x * componentSize + componentOffset, y * componentSize + 16);
+    ctx.fillText(componentTitle, x * componentSize + componentOffset + textOffset, y * componentSize + textOffset + 16);
     map[x][y] = {
         canBeHere: true,
         canGoX: ship.isAlien,
@@ -36,11 +42,12 @@ function drawComponent(ctx: CanvasRenderingContext2D, x: number, y: number, ship
 
 function drawPassage(ctx: CanvasRenderingContext2D, x0: number, y0: number, ship: Ship, map: WalkMap) {
     const p = ship.passage
+    ctx.beginPath();
     ctx.rect((x0 + p.x) * componentSize, (y0 + p.y) * componentSize, p.w * componentSize, p.h * componentSize);
-    ctx.strokeStyle = "white";
-    ctx.fillStyle = "white";
+    ctx.strokeStyle = ship.color;
+    ctx.fillStyle = ship.color2;
+    ctx.fill();
     ctx.stroke();
-    ctx.textBaseline = 'top';
     let component = new Passage();
     for (let x = 0; x < p.w; x++)
         for (let y = 0; y < p.h; y++)
@@ -53,12 +60,17 @@ function drawPassage(ctx: CanvasRenderingContext2D, x0: number, y0: number, ship
             }
 }
 
-export function drawAirlock(ctx: CanvasRenderingContext2D, x: number, y: number, map: WalkMap) {
+export function drawAirlock(ctx: CanvasRenderingContext2D, x: number, y: number, a: Ship, b: Ship, map: WalkMap) {
     // NOTE: YOUR ship is always the lower one
     // TODO: this is for normal-to-normal ship. How it will look with alien ships - TBD
-    ctx.strokeStyle = "white";
-    ctx.strokeStyle = "white";
-    ctx.fillStyle = "white";
+    const gradient = ctx.createLinearGradient(x * componentSize + componentOffset, y * componentSize, x * componentSize + componentOffset, (y + 1) * componentSize);
+    const gradient2 = ctx.createLinearGradient(x * componentSize + componentOffset, y * componentSize, x * componentSize + componentOffset, (y + 1) * componentSize);
+    gradient.addColorStop(0, a.color);
+    gradient.addColorStop(1, b.color);
+    gradient2.addColorStop(0, a.color2);
+    gradient2.addColorStop(1, b.color2);
+    ctx.strokeStyle = gradient;
+    ctx.fillStyle = gradient2;
     ctx.beginPath();
     ctx.moveTo(x * componentSize + componentOffset, y * componentSize);
     ctx.lineTo(x * componentSize + componentOffset * 2, (y + 0.5) * componentSize);
@@ -67,6 +79,7 @@ export function drawAirlock(ctx: CanvasRenderingContext2D, x: number, y: number,
     ctx.lineTo((x + 1) * componentSize - componentOffset * 2, (y + 0.5) * componentSize);
     ctx.lineTo((x + 1) * componentSize - componentOffset, y * componentSize);
     ctx.closePath();
+    ctx.fill();
     ctx.stroke();
     map[x][y] = {
         canBeHere: true,
@@ -104,6 +117,39 @@ export function draw_ship(ctx: CanvasRenderingContext2D, ship: Ship, cell_size: 
         }
     }
 }
+
+let x0 = 0;
+let y0 = 0;
+let c1 = '';
+let c2 = '';
+
+// function drawBackground(ts) {
+//     window.requestAnimationFrame(drawBackground);
+//     const c = gebi('systemCanvas') as HTMLCanvasElement;
+//     const ctx = c.getContext("2d") as CanvasRenderingContext2D;
+//     const max_size = ctx.canvas.width;
+//     const cell_size = max_size / (gs.star.size);
+//     gs.tick(ts);
+//     const x = Math.round((gs.playerShip.x) * cell_size);
+//     const y = Math.round((gs.playerShip.y) * cell_size);
+//     if (x === x0 && y === y0) return;
+//     x0 = x; y0 = y;
+//     // console.log(Math.round(x), Math.round(y));
+//     const p = ctx.getImageData(x, y, 1, 1).data;
+//     const c0 = rgbToHex(p, 0);
+//     if (c0 === c1 && c1 === c2) return;
+//     // gebi('canvasBox').style.background = "#" + ("000000" + rgbToHex(p[0], p[1], p[2])).slice(-6);
+//     // gebi('canvasTopBG').style.background = `linear-gradient(to right,#${rgbToHex(p, 0)},#${rgbToHex(p, 4)})`;
+//     // gebi('canvasBox').style.background = `linear-gradient(to right,#${rgbToHex(p, 8)},#${rgbToHex(p, 12)})`;
+//     // if (c0 === c1)
+//     gebi('canvasBox').style.background = `#${c0}`;
+//     // else gebi('canvasBox').style.background = `linear-gradient(#${c0},#${c1})`;
+//     // console.log(x, y, c0, c1, c2);
+//     c2 = c1;
+//     c1 = c0;
+// }
+
+// window.requestAnimationFrame(drawBackground);
 
 export function draw_planet(ctx: CanvasRenderingContext2D, planet: Planet, cell_size: number, x?: number, y?: number) {
     if (x === undefined) x = (planet.x) * cell_size;
@@ -146,6 +192,7 @@ export function draw_star(ctx: CanvasRenderingContext2D, star: Star) {
 export function draw_ships(ctx: CanvasRenderingContext2D, ships: Ship[], myRadars: number) {
     const max_size = ctx.canvas.width;
     const cell_size = max_size / gs.star.size;
+    ctx.clearRect(0, 0, max_size, max_size);
     for (let ship of ships) {
         if (ship instanceof PlayerShip || ship.seenBy(gs.playerShip, myRadars))
             draw_ship(ctx, ship, cell_size, myRadars);

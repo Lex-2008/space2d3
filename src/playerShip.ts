@@ -18,7 +18,6 @@ export class PlayerShip extends Ship {
     static randomShip(size: number): PlayerShip {
         let ship = new PlayerShip();
         Ship.randomShip(size, ship); //also fills in properties of the `ship` argument
-        ship.color = 'white';
         return ship;
     }
 
