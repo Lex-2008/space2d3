@@ -1,7 +1,9 @@
-import { setStatus, showDate } from "./utils";
+import { gebi, setStatus, showDate } from "./utils";
 import { PlayerShip, isPlayerShip } from "./playerShip";
 import { Star } from "./stars";
 import { Walker } from "./walker";
+import { planet_size } from "./const";
+import { draw_planet } from "./draw";
 
 export class GameState {
     star: Star;
@@ -58,22 +60,38 @@ export class GameState {
         // }
         this.timeFlies = true;
         // this.playerShip.flying = true;
+
+        const c = gebi('bgCanvas') as HTMLCanvasElement;
+        const ctx = c.getContext("2d") as CanvasRenderingContext2D;
+        ctx.clearRect(0, 0, c.width, c.height);
         this.playerShip.onPlanet = null;
         this.walker.detach();
         this.lastDate = -1;
         this.tick();
     };
 
-    arrive(noOnEnter?: boolean, noSave?: boolean) {
-        this.playerShip.onPlanet = this.playerShip.toPlanet;
-        this.playerShip.x = this.playerShip.onPlanet.x;
-        this.playerShip.y = this.playerShip.onPlanet.y;
+    arrive(noOnEnter?: boolean, noSave?: boolean, noAnimate?: boolean) {
+        const planet = this.playerShip.toPlanet;
+        this.playerShip.onPlanet = planet;
+        this.playerShip.x = planet.x;
+        this.playerShip.y = planet.y;
         // this.playerShip.flying = false;
         this.timeFlies = false;
-        if (!noOnEnter) this.playerShip.onPlanet.onEnter();
-        this.walker.attach(this.playerShip.onPlanet.base);
-        setStatus(`Docked to base at ${this.playerShip.onPlanet.name} planet`);
+        if (!noOnEnter) planet.onEnter();
+        setStatus(`Docking to base at ${planet.name} planet`);
         if (!noSave) localStorage.space2d3_2 = JSON.stringify(this.toJSON());
+
+        const c = gebi('bgCanvas') as HTMLCanvasElement;
+        const ctx = c.getContext("2d") as CanvasRenderingContext2D;
+        const box = gebi('canvasBox') as HTMLDivElement;
+        if (noAnimate) {
+            c.classList.add('notransition');
+        }
+        c.width = box.offsetWidth;
+        c.height = box.offsetHeight;
+        draw_planet(ctx, planet, c.width / planet_size / 2, c.width / 2, c.height / 2);
+        this.walker.attach(planet.base);
+        setStatus(`Docked to base at ${planet.name} planet`);
     };
 
     toJSON() {
