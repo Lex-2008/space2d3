@@ -78,6 +78,9 @@ function startGame(newGame = false) {
     const c = gebi('systemCanvas') as HTMLCanvasElement;
     const ctx = c.getContext("2d") as CanvasRenderingContext2D;
     draw_star(ctx, gs.star);
+    for (let ship of gs.star.ships) {
+        ship.updateSpaceXY(gs.now);
+    }
     window.gs = gs;
 }
 
