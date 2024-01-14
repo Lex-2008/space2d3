@@ -106,6 +106,7 @@ export function loadGS(data) {
 }
 
 export function newGS() {
+    if (gs) gs._timeFlies = false;
     gs = new GameState();
 }
 
