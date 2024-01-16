@@ -340,13 +340,15 @@ export class Ship {
         const color = randomFrom(shipColors);
         ship.color = '#' + color;
         ship.color2 = '#' + calcColor2(color);
-        ship.rows = [[], []];
+        ship.rows = [[], [], []];
         const components = shuffle([new NavigationComputer(), new Radar(), new TradingComputer(), new MissionComputer()])
         for (let component of components)
-            ship.addComponent(component, randomInt(0, 1));
+            ship.addComponent(component, randomInt(0, 2));
         ship.offsets = [
             randomInt(0, ship.rows[0].length),
-            randomInt(0, ship.rows[1].length)];
+            randomInt(0, ship.rows[1].length),
+            randomInt(0, ship.rows[2].length),
+        ];
         ship.balanceBallast()
         ship.countComponents()
         return ship
