@@ -159,6 +159,8 @@ export class Star {
 			for (let j = 0; j < i; j++) {
 				if (this.planets[i].neighbours.indexOf(this.planets[j]) < 0) continue;
 				let s = Ship.randomShip(15);
+				s.x = this.planets[i].x;
+				s.y = this.planets[i].y;
 				const dist = Math.hypot(this.planets[i].x - this.planets[j].x, this.planets[i].y - this.planets[j].y);
 				const flyTime = dist / shipBaseSpeed;
 				this.planets[i].dispatch(s, now - flyTime);
