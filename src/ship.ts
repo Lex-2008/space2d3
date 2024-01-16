@@ -1,12 +1,12 @@
 import { Cargo, MissionBox, UsefulCargo, isCargoType } from "./cargo"
 import { Ballast, CargoBay, Cloak, Component, MissionComputer, NavigationComputer, NormalComponent, Radar, TradingComputer, isCargoBay, isComponentType, isComputerComponentType, isNormalComponentType } from "./components"
-import { cargoPerCargoBay, shipBaseSpeed, shipColors } from "./const"
+import { cargoPerCargoBay, shipBaseSpeed, shipColors, shipNames } from "./const"
 import { Point } from "./geometry"
 import { calcInterceptionTime } from "./interceptionCalc"
 import { Planet } from "./planets"
 import { fromJSON, types } from "./saveableType"
 import { Star } from "./stars"
-import { assert, calcColor2, randomFrom, randomInt, shuffle } from "./utils"
+import { assert, calcColor2, randomFrom, randomInt, shuffle, toPoint } from "./utils"
 
 export interface xywh {
     'x': number,
@@ -126,11 +126,15 @@ export class Ship {
 
     }
 
-    planTrip(fromPoint: Point, toPlanet: Planet, fromTime: number) {
-        this.fromPoint = fromPoint;
+    distanceTo(p: Point) {
+        return Math.hypot(this.x - p.x, this.y - p.y);
+    }
+
+    planTrip(toPlanet: Planet, fromTime: number) {
+        this.fromPoint = toPoint(this);
         this.toPlanet = toPlanet;
         this.fromTime = fromTime;
-        const dist = toPlanet.distanceTo(fromPoint);
+        const dist = this.distanceTo(toPlanet);
         const flyTime = dist / shipBaseSpeed;
         this.toTime = fromTime + flyTime;
         this.updateSpaceXY(this.fromTime);
@@ -248,7 +252,7 @@ export class Ship {
     }
 
     seenBy(pos: Point, myRadars: number) {
-        const dist = Math.hypot(pos.x - this.x, pos.y - this.y);
+        const dist = this.distanceTo(pos);
         return true;// myRadars >= dist + this.componentTypes[Cloak.id];
     }
 
@@ -389,6 +393,7 @@ export class Ship {
         const cargoTypes = Object.values(types).filter(isCargoType);
         if (ship === undefined) ship = new Ship();
         const color = randomFrom(shipColors);
+        ship.name = randomFrom(shipNames);
         ship.color = '#' + color;
         ship.color2 = '#' + calcColor2(color);
         ship.rows = [[], [], [], []]

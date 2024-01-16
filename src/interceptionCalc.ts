@@ -1,7 +1,4 @@
-export interface Point {
-    x: number,
-    y: number
-}
+import { Point } from "./geometry";
 
 function _calcInterceptionTime(x0: number, y0: number, vx: number, vy: number, w: number) {
     const D1 = w ** 2 * x0 ** 2 + w ** 2 * y0 ** 2 - (vx * y0 - vy * x0) ** 2;

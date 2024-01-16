@@ -56,7 +56,9 @@ function newGame(shipData?: ShipData) {
     if (shipData) gs.playerShip = PlayerShip.fromJSON(shipData, gs.star);
     else gs.playerShip = PlayerShip.randomShip(15);
     gs.star.ships.push(gs.playerShip);
-    gs.playerShip.planTrip({ x: gs.star.planets[0].x - shipBaseSpeed, y: gs.star.planets[0].y }, gs.star.planets[0], -1);
+
+    gs.playerShip.toPlanet = gs.star.planets[0];
+    // gs.playerShip.planTrip({ x: gs.star.planets[0].x - shipBaseSpeed, y: gs.star.planets[0].y }, gs.star.planets[0], -1);
     gs.now = 0;
     startGame(true);
 }

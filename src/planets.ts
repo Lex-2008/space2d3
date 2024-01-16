@@ -76,9 +76,6 @@ export class Planet {
 		this.color_in = type[3];
 		this.color_out = type[4];
 	}
-	distanceTo(p: Point) {
-		return Math.hypot(this.x - p.x, this.y - p.y);
-	}
 	toJSON(): PlanetData {
 		return {
 			'x': this.x,
@@ -111,7 +108,7 @@ export class Planet {
 		//send the ship in a random direction
 		const dest = this.neighbours.shift() as Planet;
 		this.neighbours.push(dest);
-		ship.planTrip(this, dest, departTime);
+		ship.planTrip(dest, departTime);
 	}
 	onEnter() {
 		this.deliveryMissionDest = randomFrom(this.neighbours).name;

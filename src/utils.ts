@@ -1,4 +1,5 @@
 import { RGBtoL, LtoRGB } from "./colorCalc";
+import { Point } from "./geometry";
 
 export function randomInt(a: number, b: number): number {
 	if (a > b) [a, b] = [b, a];
@@ -60,4 +61,8 @@ export function assert(condition: any, msg?: any, ...args): asserts condition {
 		if (args.length) console.error(msg, ...args);
 		throw new Error(msg);
 	}
+}
+
+export function toPoint(a: Point): Point {
+	return { 'x': a.x, 'y': a.y };
 }

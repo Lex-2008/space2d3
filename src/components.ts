@@ -113,7 +113,7 @@ export class NavigationComputer extends ComputerComponent {
     planetTr(value: { planet: Planet; i: number }) {
         const planet = value.planet;
         const i = value.i;
-        const time = Math.ceil(planet.distanceTo(gs.playerShip) / shipBaseSpeed);
+        const time = Math.ceil(gs.playerShip.distanceTo(planet) / shipBaseSpeed);
         const selected = (planet == gs.playerShip.toPlanet) ? 'checked' : '';
         const disabled = (planet == gs.playerShip.onPlanet) ? 'disabled' : '';
         return `<tr><td>
@@ -134,7 +134,7 @@ export class NavigationComputer extends ComputerComponent {
         }
         this.showDiv('Select');
         (document.querySelector('#NavigationComputer table') as HTMLTableElement).innerHTML =
-            gs.star.planets.map((p, i) => { return { 'planet': p, 'i': i, 'dist': p.distanceTo(gs.playerShip) } }).sort((a, b) => a.dist - b.dist).map(this.planetTr).join('');
+            gs.star.planets.map((p, i) => { return { 'planet': p, 'i': i, 'dist': gs.playerShip.distanceTo(p) } }).sort((a, b) => a.dist - b.dist).map(this.planetTr).join('');
         gs.star.planets.forEach((planet, i) => {
             const c = document.getElementById(`NavigationComputer_canvas_${i}`) as HTMLCanvasElement;
             if (!c) return;
@@ -147,7 +147,7 @@ export class NavigationComputer extends ComputerComponent {
             const el = document.querySelector('input[name="NavigationComputer_to"]:checked') as HTMLInputElement;
             if (!el) return false;
             if (!gs.playerShip.onPlanet) return false;
-            gs.playerShip.planTrip(gs.playerShip.onPlanet, gs.star.planets[parseInt(el.value)], gs.now);
+            gs.playerShip.planTrip(gs.star.planets[parseInt(el.value)], gs.now);
             this.showDiv('Detach');
             // console.log('NavigationComputer_Plot', gs.playerShip.toPlanet, gs.star.planets, parseInt(el.value));
             return true;
