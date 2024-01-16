@@ -9,11 +9,13 @@ export class PlayerShip extends Ship {
     // flying = false;
     onPlanet: Planet | null;
 
-    updateSpaceXY(now: number) {
+    updateSpaceXY(now: number, allowArrive: boolean = true) {
         // console.log('updateSpaceXY', now, this.toTime);
         super.updateSpaceXY(now, false);
-        if (now >= this.toTime) gs.arrive();
+        if (now >= this.toTime && allowArrive) gs.arrive();
     }
+
+    considerIntercept() { }
 
     static randomShip(size: number): PlayerShip {
         let ship = new PlayerShip();

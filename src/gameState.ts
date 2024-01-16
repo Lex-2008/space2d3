@@ -35,14 +35,19 @@ export class GameState {
         this.now += Math.max(0, Math.min(ts - this.lastTickTimestamp, 1000)) / 1000;
         this.lastTickTimestamp = ts;
         const newDate = Math.floor(this.now);
+        for (let ship of this.star.ships) {
+            ship.updateSpaceXY(this.now);
+        }
         if (this.lastDate != newDate) {
             showDate(newDate);
             this.lastDate = newDate;
-            const tripRemain = Math.ceil(this.playerShip.toTime - this.now);
-            setStatus(`Approaching ${this.playerShip.toPlanet.name} planet in ${tripRemain} days`);
-        }
-        for (let ship of this.star.ships) {
-            ship.updateSpaceXY(this.now);
+            if (this._timeFlies) {
+                const tripRemain = Math.ceil(this.playerShip.toTime - this.now);
+                setStatus(`Approaching ${this.playerShip.toPlanet.name} planet in ${tripRemain} days`);
+            }
+            for (let ship of this.star.ships) {
+                ship.considerIntercept(this.star.ships, this.now);
+            }
         }
         return true;
     };

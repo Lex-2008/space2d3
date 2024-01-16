@@ -102,6 +102,12 @@ export class Star {
 				if (s.p) return PlayerShip.fromJSON(s, this);
 				return Ship.fromJSON(s, this);
 			});
+			for (let i = 0; i < this.ships.length; i++) {
+				this.ships[i].i = i;
+				if (this.ships[i].isIntercepting) {
+					this.ships[i].interceptingShip = this.ships[load.sh[i].is];
+				}
+			}
 		}
 		// this.jobs = countJobs(this.planets);
 		this.setRatios();
@@ -157,6 +163,7 @@ export class Star {
 				const flyTime = dist / shipBaseSpeed;
 				this.planets[i].dispatch(s, now - flyTime);
 				this.ships.push(s);
+				this.ships.at(-1)!.i = this.ships.length - 1;
 			}
 		}
 	}

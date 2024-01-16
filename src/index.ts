@@ -79,7 +79,7 @@ function startGame(newGame = false) {
     const ctx = c.getContext("2d") as CanvasRenderingContext2D;
     draw_star(ctx, gs.star);
     for (let ship of gs.star.ships) {
-        ship.updateSpaceXY(gs.now);
+        ship.updateSpaceXY(gs.now, false);
     }
     window.gs = gs;
 }

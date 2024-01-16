@@ -2,10 +2,11 @@ import { Cargo, MissionBox, UsefulCargo, isCargoType } from "./cargo"
 import { Ballast, CargoBay, Cloak, Component, MissionComputer, NavigationComputer, NormalComponent, Radar, TradingComputer, isCargoBay, isComponentType, isComputerComponentType, isNormalComponentType } from "./components"
 import { cargoPerCargoBay, shipBaseSpeed, shipColors } from "./const"
 import { Point } from "./geometry"
+import { calcInterceptionTime } from "./interceptionCalc"
 import { Planet } from "./planets"
 import { fromJSON, types } from "./saveableType"
 import { Star } from "./stars"
-import { calcColor2, randomFrom, randomInt, shuffle } from "./utils"
+import { assert, calcColor2, randomFrom, randomInt, shuffle } from "./utils"
 
 export interface xywh {
     'x': number,
@@ -27,6 +28,12 @@ export interface ShipData {
     'toT': number,
     'p'?: boolean,
     'on'?: number,
+    'ii': boolean,
+    'ibi': boolean,
+    'is': number,
+    'iX': number,
+    'iY': number,
+    'iT': number,
 }
 
 export class Ship {
@@ -39,6 +46,7 @@ export class Ship {
     componentTypes: { [typeName: string]: number }
     cargoTypes: { [typeName: string]: number }
     freeCargo: number
+    i: number
     // next 4 are yet unused, to be used by detach/attach logic
     isPlayerShip: boolean = false
     playerOnShip: boolean = false
@@ -51,14 +59,71 @@ export class Ship {
     toPlanet: Planet
     fromTime: number
     toTime: number
+    // interception
+    isIntercepting: boolean = false
+    isBeingIntercepted: boolean = false
+    interceptingShip: Ship
+    interceptionX: number
+    interceptionY: number
+    interceptionTime: number
 
     updateSpaceXY(now: number, allowDispatch = true) {
-        while (now >= this.toTime && allowDispatch) {
-            this.toPlanet.dispatch(this, this.toTime);
+        if (this.isIntercepting) {
+            assert(!this.interceptingShip.isIntercepting);
+            if (now >= this.interceptionTime) {
+                assert(this.interceptingShip.toTime > now);
+                // Note: next line might move the target ship "back in time" a bit
+                this.interceptingShip.updateSpaceXY(this.interceptionTime);
+                //intercepted!
+                //TODO: check that target ship is still there. Player might avoid being intercepted
+                // console.log('intercepted1', Math.hypot(this.x - this.interceptingShip.x, this.y - this.interceptingShip.y));
+                // console.log('intercepted2', Math.hypot(this.interceptionX - this.interceptingShip.x, this.interceptionY - this.interceptingShip.y));
+                this.isIntercepting = false;
+                this.interceptingShip.isBeingIntercepted = false;
+                this.fromTime = now;
+                this.fromPoint.x = this.x = this.interceptingShip.x;
+                this.fromPoint.y = this.y = this.interceptingShip.y;
+                // TODO: do something
+            } else {
+                const flightProgress = (now - this.fromTime) / (this.interceptionTime - this.fromTime);
+                this.x = this.fromPoint.x + (this.interceptionX - this.fromPoint.x) * flightProgress;
+                this.y = this.fromPoint.y + (this.interceptionY - this.fromPoint.y) * flightProgress;
+            }
+        } else {
+            while (now >= this.toTime && allowDispatch) {
+                assert(!this.isIntercepting);
+                assert(!this.isBeingIntercepted);
+                this.toPlanet.dispatch(this, this.toTime);
+            }
+            const flightProgress = (now - this.fromTime) / (this.toTime - this.fromTime);
+            this.x = this.fromPoint.x + (this.toPlanet.x - this.fromPoint.x) * flightProgress;
+            this.y = this.fromPoint.y + (this.toPlanet.y - this.fromPoint.y) * flightProgress;
         }
-        const flightProgress = (now - this.fromTime) / (this.toTime - this.fromTime);
-        this.x = this.fromPoint.x + (this.toPlanet.x - this.fromPoint.x) * flightProgress;
-        this.y = this.fromPoint.y + (this.toPlanet.y - this.fromPoint.y) * flightProgress;
+    }
+
+    considerIntercept(ships: Ship[], now) {
+        if (this.isIntercepting || this.isBeingIntercepted) return;
+        // consider intercepting someone
+        const interceptableShips = shuffle(ships.filter(s => s != this && !s.isIntercepting && !s.isBeingIntercepted && Math.hypot(this.x - s.x, this.y - s.y) > 1 && s.seenBy({ 'x': this.x, 'y': this.y }, this.componentTypes[Radar.id])));
+        for (let ship of interceptableShips) {
+            // TODO: store vx,vy in ship
+            let vx = (ship.toPlanet.x - ship.fromPoint.x) / (ship.toTime - ship.fromTime);
+            let vy = (ship.toPlanet.y - ship.fromPoint.y) / (ship.toTime - ship.fromTime);
+            let time = calcInterceptionTime(this, ship, { 'x': vx, 'y': vy }, 2 * shipBaseSpeed, now);
+            if (time > ship.toTime - 1) continue;
+            this.isIntercepting = true;
+            this.interceptingShip = ship;
+            this.toPlanet = ship.toPlanet;
+            this.toTime = ship.toTime;
+            this.fromTime = now;
+            this.fromPoint = { 'x': this.x, 'y': this.y };
+            this.interceptionX = ship.x + vx * (time - now);
+            this.interceptionY = ship.y + vy * (time - now);
+            this.interceptionTime = time;
+            ship.isBeingIntercepted = true;
+            break;
+        }
+
     }
 
     planTrip(fromPoint: Point, toPlanet: Planet, fromTime: number) {
@@ -184,7 +249,7 @@ export class Ship {
 
     seenBy(pos: Point, myRadars: number) {
         const dist = Math.hypot(pos.x - this.x, pos.y - this.y);
-        return myRadars >= dist + this.componentTypes[Cloak.id];
+        return true;// myRadars >= dist + this.componentTypes[Cloak.id];
     }
 
     toJSON(): ShipData {
@@ -199,6 +264,12 @@ export class Ship {
             'frT': this.fromTime,
             'toP': this.toPlanet?.i,
             'toT': this.toTime,
+            'ii': this.isIntercepting,
+            'ibi': this.isBeingIntercepted,
+            'is': this.interceptingShip?.i,
+            'iX': this.interceptionX,
+            'iY': this.interceptionY,
+            'iT': this.interceptionTime,
         }
     }
 
@@ -220,6 +291,13 @@ export class Ship {
         ship.fromTime = data.frT;
         ship.toTime = data.toT;
         if (star) ship.toPlanet = star.planets[data.toP];
+        if (data.ii) {
+            ship.isIntercepting = data.ii;
+            ship.interceptionX = data.iX;
+            ship.interceptionY = data.iY;
+            ship.interceptionTime = data.iT;
+        }
+        ship.isBeingIntercepted = data.ibi;
         // ship.balanceBallast();
         ship.fillBallastOpposite();
         ship.countComponents();

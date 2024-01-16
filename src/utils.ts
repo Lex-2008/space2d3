@@ -54,3 +54,10 @@ export function calcColor2(hex: string) {
 	if (l < 50) return LtoRGB(Math.min(l + 50, 100));
 	else return LtoRGB(Math.max(l - 50, 0));
 }
+
+export function assert(condition: any, msg?: any, ...args): asserts condition {
+	if (!condition) {
+		if (args.length) console.error(msg, ...args);
+		throw new Error(msg);
+	}
+}
