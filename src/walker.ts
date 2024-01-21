@@ -71,10 +71,10 @@ export class Walker {
         return true
     }
 
-    goUp() { this.goY(-1); this.human.style.transform = 'rotate(0deg)' }
-    goDn(sure?: boolean) { this.goY(1, sure); this.human.style.transform = 'rotate(180deg)' }
-    goLt() { this.goX(-1); this.human.style.transform = 'rotate(-90deg)' }
-    goRt() { this.goX(1); this.human.style.transform = 'rotate(90deg)' }
+    goUp() { this.goY(-1); this.human.style.transform = 'rotate(180deg)' }
+    goDn(sure?: boolean) { this.goY(1, sure); this.human.style.transform = 'rotate(0deg)' }
+    goLt() { this.goX(-1); this.human.style.transform = 'rotate(90deg)' }
+    goRt() { this.goX(1); this.human.style.transform = 'rotate(-90deg)' }
 
     jumpTo(x: number, y: number, callOnEnter = true) {
         this.x = x;
