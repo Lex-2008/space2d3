@@ -492,6 +492,7 @@ export class Ship {
             randomInt(0, ship.rows[2].length),
         ];
         ship.balanceBallast()
+        ship.balanceBase()
         ship.countComponents()
         return ship
     }
@@ -551,6 +552,22 @@ export class Ship {
         this.fillBallastOpposite()
     }
 
+    balanceBase() {
+        const max = this.rows.length - 1;
+        for (var i = 0; i <= max; i++) {
+            // add balance at head
+            while (this.offsets[i] < this.rows[i].length / 2) {
+                this.rows[i].unshift(new Ballast());
+                this.offsets[i]++;
+            }
+            // add balance at tail
+            while (this.offsets[i] > this.rows[i].length / 2) {
+                this.rows[i].push(new Ballast())
+            }
+        }
+        this.fillBallastOpposite()
+    }
+
     fillBallastOpposite() {
         // record what's opposite to ballast
         if (this.isAlien) {
@@ -560,7 +577,17 @@ export class Ship {
             for (var i = 0; i <= max; i++) {
                 for (var j = 0; j <= this.rows[i].length; j++) {
                     if (this.rows[i][j] instanceof Ballast) {
-                        (this.rows[i][j] as Ballast).opposite = this.rows[max - i][j].typename
+                        if (!(this.rows[max - i][j] instanceof Ballast))
+                            (this.rows[i][j] as Ballast).opposite = this.rows[max - i][j].typename;
+                        else {
+                            let opposite = 2 * this.offsets[i] - j - 1;
+                            if (!(this.rows[i][opposite] instanceof Ballast))
+                                (this.rows[i][j] as Ballast).opposite = this.rows[i][opposite].typename;
+                            else {
+                                assert(!(this.rows[max - i][opposite] instanceof Ballast));
+                                (this.rows[i][j] as Ballast).opposite = this.rows[max - i][opposite].typename;
+                            }
+                        }
                     }
                 }
             }
