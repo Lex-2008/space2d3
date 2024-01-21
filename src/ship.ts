@@ -1,12 +1,23 @@
 import { Cargo, MissionBox, UsefulCargo, isCargoType } from "./cargo"
 import { Ballast, CargoBay, Cloak, Component, MissionComputer, NavigationComputer, NormalComponent, Radar, TradingComputer, isCargoBay, isComponentType, isComputerComponentType, isNormalComponentType } from "./components"
-import { cargoPerCargoBay, shipBaseSpeed, shipColors, shipNames } from "./const"
+import { cargoPerCargoBay, minDaysAfterIntercept, shipBaseSpeed, shipColors, shipNames } from "./const"
+import { GS, gs } from "./gameState"
 import { Point } from "./geometry"
 import { calcInterceptionTime } from "./interceptionCalc"
 import { Planet } from "./planets"
+import { PlayerShip } from "./playerShip"
 import { fromJSON, types } from "./saveableType"
 import { Star } from "./stars"
-import { assert, calcColor2, randomFrom, randomInt, shuffle, toPoint } from "./utils"
+import { assert, calcColor2, gebi, randomFrom, randomInt, setStatus, shuffle, toPoint } from "./utils"
+
+export let nextShip = 0;
+function nextShipData() {
+    nextShip++;
+    if (nextShip >= shipColors.length) nextShip = 0;
+    return { 'color': shipColors[nextShip], 'name': shipNames[nextShip] };
+}
+
+export function setNextShip(n: number) { nextShip = n };
 
 export interface xywh {
     'x': number,
@@ -29,7 +40,6 @@ export interface ShipData {
     'p'?: boolean,
     'on'?: number,
     'ii': boolean,
-    'ibi': boolean,
     'is': number,
     'iX': number,
     'iY': number,
@@ -61,29 +71,58 @@ export class Ship {
     toTime: number
     // interception
     isIntercepting: boolean = false
-    isBeingIntercepted: boolean = false
+    private _isBeingIntercepted: boolean = false
     interceptingShip: Ship
     interceptionX: number
     interceptionY: number
     interceptionTime: number
 
+    get isBeingIntercepted() { return this._isBeingIntercepted }
+
+    setIsBeingIntercepted(ships?: Ship[]) {
+        if (!ships) ships = gs.star.ships;
+        this._isBeingIntercepted = !!ships.find(ship => ship.isIntercepting && ship.interceptingShip == this);
+    }
+
     updateSpaceXY(now: number, allowDispatch = true) {
         if (this.isIntercepting) {
-            assert(!this.interceptingShip.isIntercepting);
+            // NOTE: player ship might start interceptiong someone while being intercepted.
+            // Then we log a warning that they "got away" (likely they did), and move on.
+            assert(this.interceptingShip instanceof PlayerShip || !this.interceptingShip.isIntercepting);
             if (now >= this.interceptionTime) {
+                //intercepted!
+                // console.log(`${this.name} intercepted ${this.interceptingShip.name} at dist=${this.distanceTo(this.interceptingShip)}`, this, this.interceptingShip);
                 assert(this.interceptingShip.toTime > now);
                 // Note: next line might move the target ship "back in time" a bit
                 this.interceptingShip.updateSpaceXY(this.interceptionTime);
-                //intercepted!
-                //TODO: check that target ship is still there. Player might avoid being intercepted
+                if (this.interceptingShip.distanceTo({ 'x': this.interceptionX, 'y': this.interceptionY }) > 0.02) {
+                    console.warn(`${this.interceptingShip.name} ship got away from ${this.name}, dist `, this.distanceTo(this.interceptingShip));
+                    assert(this.interceptingShip instanceof PlayerShip);
+                    this.isIntercepting = false;
+                    this.interceptingShip.setIsBeingIntercepted();
+                    this.fromTime = now;
+                    this.fromPoint.x = this.x;
+                    this.fromPoint.y = this.y;
+                    return;
+                }
                 // console.log('intercepted1', Math.hypot(this.x - this.interceptingShip.x, this.y - this.interceptingShip.y));
                 // console.log('intercepted2', Math.hypot(this.interceptionX - this.interceptingShip.x, this.interceptionY - this.interceptingShip.y));
                 this.isIntercepting = false;
-                this.interceptingShip.isBeingIntercepted = false;
+                this.interceptingShip.setIsBeingIntercepted();
                 this.fromTime = now;
                 this.fromPoint.x = this.x = this.interceptingShip.x;
                 this.fromPoint.y = this.y = this.interceptingShip.y;
                 // TODO: do something
+                if (this instanceof PlayerShip) {
+                    gs.joinShip(this.interceptingShip);
+                    setStatus('ship', 'you_intercepted', this.interceptingShip);
+                    gebi('status_ship_you_intercepted_continue').onclick = () => { gs.leaveShip(); };
+                }
+                else if (this.interceptingShip instanceof PlayerShip) {
+                    gs.joinShip(this);
+                    setStatus('ship', 'intercepted_uninterested', this);
+                    gebi('status_ship_intercepted_uninterested_continue').onclick = () => { gs.leaveShip(); };
+                }
             } else {
                 const flightProgress = (now - this.fromTime) / (this.interceptionTime - this.fromTime);
                 this.x = this.fromPoint.x + (this.interceptionX - this.fromPoint.x) * flightProgress;
@@ -101,7 +140,7 @@ export class Ship {
         }
     }
 
-    considerIntercept(ships: Ship[], now) {
+    considerIntercept(ships: Ship[], now: number) {
         if (this.isIntercepting || this.isBeingIntercepted) return;
         // consider intercepting someone
         const interceptableShips = shuffle(ships.filter(s => s != this && !s.isIntercepting && !s.isBeingIntercepted && Math.hypot(this.x - s.x, this.y - s.y) > 1 && s.seenBy({ 'x': this.x, 'y': this.y }, this.componentTypes[Radar.id])));
@@ -110,20 +149,24 @@ export class Ship {
             let vx = (ship.toPlanet.x - ship.fromPoint.x) / (ship.toTime - ship.fromTime);
             let vy = (ship.toPlanet.y - ship.fromPoint.y) / (ship.toTime - ship.fromTime);
             let time = calcInterceptionTime(this, ship, { 'x': vx, 'y': vy }, 2 * shipBaseSpeed, now);
-            if (time > ship.toTime - 1) continue;
-            this.isIntercepting = true;
-            this.interceptingShip = ship;
-            this.toPlanet = ship.toPlanet;
-            this.toTime = ship.toTime;
-            this.fromTime = now;
-            this.fromPoint = { 'x': this.x, 'y': this.y };
-            this.interceptionX = ship.x + vx * (time - now);
-            this.interceptionY = ship.y + vy * (time - now);
-            this.interceptionTime = time;
-            ship.isBeingIntercepted = true;
+            if (time > ship.toTime - minDaysAfterIntercept) continue;
+            this.performIntercept(ship, vx, vy, time, now);
             break;
         }
+    }
 
+    performIntercept(ship: Ship, vx: number, vy: number, time: number, now: number) {
+        // TODO: store vx,vy in ship
+        this.isIntercepting = true;
+        this.interceptingShip = ship;
+        this.toPlanet = ship.toPlanet;
+        this.toTime = ship.toTime;
+        this.fromTime = now;
+        this.fromPoint = { 'x': this.x, 'y': this.y };
+        this.interceptionX = ship.x + vx * (time - now);
+        this.interceptionY = ship.y + vy * (time - now);
+        this.interceptionTime = time;
+        ship.setIsBeingIntercepted();
     }
 
     distanceTo(p: Point) {
@@ -269,7 +312,6 @@ export class Ship {
             'toP': this.toPlanet?.i,
             'toT': this.toTime,
             'ii': this.isIntercepting,
-            'ibi': this.isBeingIntercepted,
             'is': this.interceptingShip?.i,
             'iX': this.interceptionX,
             'iY': this.interceptionY,
@@ -301,11 +343,27 @@ export class Ship {
             ship.interceptionY = data.iY;
             ship.interceptionTime = data.iT;
         }
-        ship.isBeingIntercepted = data.ibi;
         // ship.balanceBallast();
         ship.fillBallastOpposite();
         ship.countComponents();
         return ship;
+    }
+
+    toHTML(sayShip: boolean, showTimeFrom?: Ship) {
+        let time = '';
+        if (showTimeFrom) {
+            let dist = showTimeFrom.distanceTo(this);
+            if (dist < 0.01) dist = 0;
+            time = ` (${Math.ceil(dist / shipBaseSpeed)} d)`;
+        }
+        const square = `<span class="colorBox" style="background:${this.color};border-color:${this.color2}"></span>`;
+        // if (sayShip) {
+        const type = this.isAlien ? '<i>Alien</i>' : this.rows.length % 2 ? '<i>Odd</i>' : '';
+        return `${square} ${type}${sayShip ? 'ship ' : ''}<b>${this.name}</b>${time}`;
+        // } else {
+        //     const type = this.isAlien ? ' (<i>Alien</i>)' : this.rows.length % 2 ? ' (<i>Odd</i>)' : '';
+        //     return `${square} <b>${this.name}</b>${type}${time}`;
+        // }
     }
 
     // functions used in drawing
@@ -392,8 +450,9 @@ export class Ship {
         const componentTypes = noramalComponentTypes.concat(computerTypes);
         const cargoTypes = Object.values(types).filter(isCargoType);
         if (ship === undefined) ship = new Ship();
-        const color = randomFrom(shipColors);
-        ship.name = randomFrom(shipNames);
+        const data = nextShipData();
+        const color = data.color;
+        ship.name = data.name;
         ship.color = '#' + color;
         ship.color2 = '#' + calcColor2(color);
         ship.rows = [[], [], [], []]

@@ -1,5 +1,9 @@
 import { RGBtoL, LtoRGB } from "./colorCalc";
 import { Point } from "./geometry";
+import { Ship } from "./ship";
+interface hasToHTML {
+	toHTML(sayType: boolean, showTimeFrom?: Ship): string;
+}
 
 export function randomInt(a: number, b: number): number {
 	if (a > b) [a, b] = [b, a];
@@ -35,8 +39,10 @@ export function gibi(id: string) {
 	return element;
 }
 
-export function setStatus(s: string) {
-	gebi('status').innerText = s;
+export function setStatus(type: 'ship' | 'planet', id: string, obj?: hasToHTML, days?: number) {
+	gebi(`status_${type}`).innerHTML = `#status_${type}_${id}{display:block !important}`;
+	if (obj) gebi(`status_${type}_${id}_name`).innerHTML = obj.toHTML(true);
+	if (days) gebi(`status_${type}_${id}_days`).innerText = days.toString();
 }
 
 export function showDate(today: number) {

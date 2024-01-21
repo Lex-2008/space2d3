@@ -50,12 +50,16 @@ export class Walker {
         }
     }
 
+    triggerOnEnter() {
+        this.onEnter(this.map[this.x][this.y].component)
+    }
+
     goX(sign: number) {
         if (!this.map[this.x][this.y].canGoX) return false;
         if (!this.map[this.x + sign][this.y].canBeHere) return false;
         this.x += sign
         this.reposition()
-        this.onEnter(this.map[this.x][this.y].component)
+        this.triggerOnEnter()
         return true
     }
     goY(sign: number, sure?: boolean) {
@@ -63,7 +67,7 @@ export class Walker {
         if (!this.map[this.x][this.y + sign].canBeHere) return false;
         this.y += sign
         this.reposition()
-        this.onEnter(this.map[this.x][this.y].component)
+        this.triggerOnEnter()
         return true
     }
 
@@ -76,7 +80,7 @@ export class Walker {
         this.x = x;
         this.y = y;
         this.reposition(true);
-        if (callOnEnter) this.onEnter(this.map[x][y].component);
+        if (callOnEnter) this.triggerOnEnter();
     }
 
     reposition(fast?: boolean) {

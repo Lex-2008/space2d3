@@ -1,7 +1,8 @@
 import { Cargo, Fuel, MissionBox, ResourceCargo, Rocket, isMissionBox } from "./cargo"
-import { cargoPerCargoBay, cargoPerCargoMission, cargoPerDeliveryMission, maxFreeCargoBays, planet_size, shipBaseSpeed } from "./const"
-import { draw_planet, draw_ships, draw_star } from "./draw"
-import { GameState, gs } from "./gameState"
+import { cargoPerCargoBay, cargoPerCargoMission, cargoPerDeliveryMission, maxFreeCargoBays, minDaysAfterIntercept, planet_size, shipBaseSpeed } from "./const"
+import { draw_planet, draw_ship, draw_ships, draw_star } from "./draw"
+import { GS, GameState, gs } from "./gameState"
+import { calcInterceptionTime } from "./interceptionCalc"
 import { Planet } from "./planets"
 import { PlayerShip } from "./playerShip"
 import { SaveableObject, addType, fromJSON, types } from "./saveableType"
@@ -83,23 +84,50 @@ export function isCargoBay(component: Component): component is CargoBay { return
 
 
 export class Radar extends NormalComponent {
+    lastHTMLUpdate = 0;
+    oldHTML = '';
     onEnter(gs: GameState) {
         const c = document.querySelector('#Radar canvas') as HTMLCanvasElement
         const ctx = c.getContext("2d") as CanvasRenderingContext2D;
-        drawRadar();
+        this.drawRadar();
+        gebi('Radar_target').onclick = (ev) => {
+            if (!(ev.target as HTMLInputElement)?.value) return;
+            gs.playerShip.targetShip = gs.star.ships[(ev.target as HTMLInputElement).value];
+        }
     }
+
+    shipDiv(value: { ship: Ship, dist: number }) {
+        const ship = value.ship;
+        const dist = value.dist;
+        const time = Math.ceil(dist / shipBaseSpeed);
+        const selected = (ship === gs.playerShip.targetShip) ? 'checked' : '';
+        const disabled = (ship === gs.playerShip) ? 'disabled' : '';
+        return `
+            <label><input type="radio" name="Radar_target" value="${ship.i}" id="Radar_target_${ship.i}" ${disabled} ${selected}>
+            ${ship.toHTML(false, gs.playerShip)}<br>
+        </label>`;
+    }
+
+    drawRadar(ts?: number) {
+        const c = gebi('shipsCanvas') as HTMLCanvasElement;
+        if (c.offsetParent === null) return;
+        const ctx = c.getContext("2d") as CanvasRenderingContext2D;
+        if (gs.tick(ts)) window.requestAnimationFrame((ts) => { this.drawRadar(ts); });
+        // const ship = gs.walker.map[gs.walker.x][gs.walker.y].ship;
+        const ship = this.ship;
+        if (ship === undefined) return;
+        const myRadars = ship.componentTypes[Radar.id];
+        draw_ships(ctx, gs.star.ships, myRadars);
+        const newHTML = gs.star.ships.filter(ship => ship.seenBy(gs.playerShip, myRadars)).map(s => { return { 'ship': s, 'dist': gs.playerShip.distanceTo(s) } }).sort((a, b) => a.dist - b.dist).map(this.shipDiv).join('');
+        if (newHTML != this.oldHTML && (!ts || (this.lastHTMLUpdate + 500 <= ts))) {
+            gebi('Radar_target').innerHTML = newHTML;
+            this.oldHTML = newHTML;
+            if (ts) this.lastHTMLUpdate = ts;
+        }
+    }
+
 }
 addType(Radar, 'Radar');
-
-function drawRadar(ts?: number) {
-    const c = gebi('shipsCanvas') as HTMLCanvasElement;
-    if (c.offsetParent === null) return;
-    const ctx = c.getContext("2d") as CanvasRenderingContext2D;
-    if (gs.tick(ts)) window.requestAnimationFrame(drawRadar);
-    const ship = gs.walker.map[gs.walker.x][gs.walker.y].ship;
-    if (ship === undefined) return;
-    draw_ships(ctx, gs.star.ships, ship.componentTypes[Radar.id]);
-}
 
 export class Cloak extends NormalComponent { }
 addType(Cloak, 'Cloak');
@@ -110,44 +138,43 @@ export abstract class ComputerComponent extends NormalComponent { }
 export function isComputerComponentType(type: typeof SaveableObject): type is typeof ComputerComponent { return type.prototype instanceof ComputerComponent && !(type.prototype instanceof BaseOnlyComputerComponent) };
 
 export class NavigationComputer extends ComputerComponent {
+    lastHTMLUpdate = 0;
+    oldHTML = '';
+    target: Planet;
     planetTr(value: { planet: Planet; i: number }) {
         const planet = value.planet;
         const i = value.i;
         const time = Math.ceil(gs.playerShip.distanceTo(planet) / shipBaseSpeed);
-        const selected = (planet == gs.playerShip.toPlanet) ? 'checked' : '';
+        const selected = (planet == this.target) ? 'checked' : '';
         const disabled = (planet == gs.playerShip.onPlanet) ? 'disabled' : '';
         return `<tr><td>
-            <label for="NavigationComputer_to_${i}"><canvas id="NavigationComputer_canvas_${i}" width=30 height=30></canvas></label>
+            <input type="radio" name="NavigationComputer_to" value="${i}" id="NavigationComputer_to_${i}" ${disabled} ${selected}>
         </td><td>
-            <label><input type="radio" name="NavigationComputer_to" value="${i}" id="NavigationComputer_to_${i}" ${disabled} ${selected}>
-            <b>${planet.name}</b> (${time}d)<br>
-            ${planet.buys ? `wants: ${planet.buys.id}` : ''} ${planet.sells ? `gives: ${planet.sells.id}` : ''}
+            <label for="NavigationComputer_to_${i}">
+            ${planet.toHTML(false, gs.playerShip, true)}
         </label></td></tr>`
     }
-    showDiv(id: string) {
-        gebi('currentComponentPage').innerHTML = `#NavigationComputer_${id}{display:block !important}`;
+
+    showDiv(id1: string, id2?: string) {
+        gebi('currentComponentPage').innerHTML = `#NavigationComputer_${id1}{display:block !important}`;
+        if (id2)
+            gebi('currentComponentPage').innerHTML += `#NavigationComputer_Intercept_${id2}{display:block !important}`;
     }
+
     onEnter(gs: GameState) {
-        if (gs.timeFlies) {
-            this.showDiv('Flying');
-            return;
-        }
+        this.target = gs.playerShip.toPlanet;
+        // TODO: if (gs.state == GS.withShip) ...
         this.showDiv('Select');
-        (document.querySelector('#NavigationComputer table') as HTMLTableElement).innerHTML =
-            gs.star.planets.map((p, i) => { return { 'planet': p, 'i': i, 'dist': gs.playerShip.distanceTo(p) } }).sort((a, b) => a.dist - b.dist).map(this.planetTr).join('');
-        gs.star.planets.forEach((planet, i) => {
-            const c = document.getElementById(`NavigationComputer_canvas_${i}`) as HTMLCanvasElement;
-            if (!c) return;
-            const ctx = c.getContext("2d") as CanvasRenderingContext2D;
-            draw_planet(ctx, planet, c.width / planet_size / 2, c.width / 2, c.height / 2);
-        })
+        this.drawNC();
+        (document.querySelector('#NavigationComputer table') as HTMLTableElement).onclick = (ev) => {
+            if (!(ev.target as HTMLInputElement)?.value) return;
+            // console.log((ev.target as HTMLInputElement)?.value);
+            this.target = gs.star.planets[(ev.target as HTMLInputElement).value];
+        }
         gebi('NavigationComputer_Plot').style.display = (this.ship instanceof PlayerShip) ? 'none' : '';
         gebi('NavigationComputer_Fly').style.display = (this.ship instanceof PlayerShip) ? '' : 'none';
         gebi('NavigationComputer_Plot').onclick = () => {
-            const el = document.querySelector('input[name="NavigationComputer_to"]:checked') as HTMLInputElement;
-            if (!el) return false;
-            if (!gs.playerShip.onPlanet) return false;
-            gs.playerShip.planTrip(gs.star.planets[parseInt(el.value)], gs.now);
+            gs.playerShip.planTrip(this.target, gs.now);
             this.showDiv('Detach');
             // console.log('NavigationComputer_Plot', gs.playerShip.toPlanet, gs.star.planets, parseInt(el.value));
             return true;
@@ -155,7 +182,49 @@ export class NavigationComputer extends ComputerComponent {
         gebi('NavigationComputer_Fly').onclick = () => {
             if (!gebi('NavigationComputer_Plot')?.onclick?.()) return false;
             this.showDiv('Departed');
-            gs.depart();
+            if (gs.state == GS.onPlanet) gs.depart();
+            if (gs.state == GS.withShip) gs.leaveShip();
+        }
+    }
+    drawNC(ts?: number) {
+        if (gebi('NavigationComputer').offsetParent === null) return;
+        if (gs.tick(ts)) window.requestAnimationFrame((ts) => { this.drawNC(ts); });
+
+        const newHTML = gs.star.planets.map((p, i) => { return { 'planet': p, 'i': i, 'dist': gs.playerShip.distanceTo(p) } }).sort((a, b) => a.dist - b.dist).map(v => this.planetTr(v)).join('');
+
+        if (newHTML != this.oldHTML && (!ts || (this.lastHTMLUpdate + 500 <= ts))) {
+            (document.querySelector('#NavigationComputer table') as HTMLTableElement).innerHTML = newHTML;
+            this.oldHTML = newHTML;
+            if (ts) this.lastHTMLUpdate = ts;
+        }
+
+        const ship = gs.playerShip.targetShip;
+        if (!ship) this.showDiv('Select', 'notarget');
+        else if (!ship.seenBy(this.ship, this.ship.componentTypes[Radar.id])) this.showDiv('Select', 'nosee');
+        else if (ship.isIntercepting) this.showDiv('Select', 'interceptor');
+        else {
+            // TODO: store vx,vy in ship
+            let vx = (ship.toPlanet.x - ship.fromPoint.x) / (ship.toTime - ship.fromTime);
+            let vy = (ship.toPlanet.y - ship.fromPoint.y) / (ship.toTime - ship.fromTime);
+            let time = calcInterceptionTime(this.ship, ship, { 'x': vx, 'y': vy }, 2 * shipBaseSpeed, gs.now);
+            if (time > ship.toTime - minDaysAfterIntercept) this.showDiv('Select', 'notime');
+            else {
+                this.showDiv('Select', 'div');
+                gebi('NavigationComputer_Intercept_ship').innerHTML = ship.toHTML(false, gs.playerShip);
+                gebi('NavigationComputer_Intercept_Plot').style.display = (this.ship instanceof PlayerShip) ? 'none' : '';
+                gebi('NavigationComputer_Intercept_Fly').style.display = (this.ship instanceof PlayerShip) ? '' : 'none';
+                gebi('NavigationComputer_Intercept_Plot').onclick = () => {
+                    this.ship.performIntercept(ship, vx, vy, time, gs.now);
+                    this.showDiv('Detach');
+                    return true;
+                }
+                gebi('NavigationComputer_Intercept_Fly').onclick = () => {
+                    if (!gebi('NavigationComputer_Intercept_Plot')?.onclick?.()) return false;
+                    this.showDiv('Departed');
+                    if (gs.state == GS.onPlanet) gs.depart();
+                    if (gs.state == GS.withShip) gs.leaveShip();
+                }
+            }
         }
     }
 }

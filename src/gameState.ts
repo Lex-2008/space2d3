@@ -1,17 +1,29 @@
-import { setStatus, showDate } from "./utils";
+import { assert, setStatus, showDate } from "./utils";
 import { PlayerShip, isPlayerShip } from "./playerShip";
 import { Star } from "./stars";
 import { Walker } from "./walker";
+import { Ship, nextShip, setNextShip } from "./ship";
+
+export enum GS { flying, onPlanet, withShip };
 
 export class GameState {
+    private _state: GS;
     star: Star;
     playerShip: PlayerShip;
+    withShip: Ship;
     walker: Walker;
     now = 0;
     lastTickTimestamp: number;
     lastDate: number;
-    _timeFlies = false;
+    private _timeFlies = false;
     tickInterval = 0;
+
+    get state() { return this._state };
+    set state(value: GS) {
+        if (this._state == value) return;
+        this._state = value;
+        this.timeFlies = value == GS.flying;
+    };
 
     get timeFlies() { return this._timeFlies };
     set timeFlies(value: boolean) {
@@ -29,7 +41,7 @@ export class GameState {
     };
 
     tick(ts?: number): boolean {
-        if (!this._timeFlies) return false;
+        if (!this.timeFlies) return false;
         if (!ts) ts = performance.now();
         if (ts <= this.lastTickTimestamp) return true;
         this.now += Math.max(0, Math.min(ts - this.lastTickTimestamp, 1000)) / 1000;
@@ -41,9 +53,13 @@ export class GameState {
         if (this.lastDate != newDate) {
             showDate(newDate);
             this.lastDate = newDate;
-            if (this._timeFlies) {
-                const tripRemain = Math.ceil(this.playerShip.toTime - this.now);
-                setStatus(`Approaching ${this.playerShip.toPlanet.name} planet in ${tripRemain} days`);
+            if (this.timeFlies) {
+                let tripRemain = Math.ceil(this.playerShip.toTime - this.now);
+                setStatus('planet', 'travelling', this.playerShip.toPlanet, tripRemain);
+                if (this.playerShip.isIntercepting) {
+                    let tripRemain = Math.ceil(this.playerShip.interceptionTime - this.now);
+                    setStatus('ship', 'intercepting', this.playerShip.interceptingShip, tripRemain);
+                }
             }
             for (let ship of this.star.ships) {
                 ship.considerIntercept(this.star.ships, this.now);
@@ -53,6 +69,7 @@ export class GameState {
     };
 
     depart() {
+        assert(this.state == GS.onPlanet);
         // console.log(this.playerShip);
         // ship.fromPlanet = this;
         // ship.toPlanet = dest;
@@ -61,6 +78,7 @@ export class GameState {
         // if (this.playerShip.onPlanet !== null) {
         //     this.playerShip.fromPlanet = this.playerShip.onPlanet;
         // }
+        this.state = GS.flying;
         this.timeFlies = true;
         // this.playerShip.flying = true;
         this.playerShip.onPlanet = null;
@@ -70,22 +88,41 @@ export class GameState {
     };
 
     arrive(noOnEnter?: boolean, noSave?: boolean) {
+        assert(this.state == GS.flying);
         this.playerShip.onPlanet = this.playerShip.toPlanet;
         this.playerShip.x = this.playerShip.onPlanet.x;
         this.playerShip.y = this.playerShip.onPlanet.y;
         // this.playerShip.flying = false;
+        this.state = GS.onPlanet;
         this.timeFlies = false;
         if (!noOnEnter) this.playerShip.onPlanet.onEnter();
         this.walker.attach(this.playerShip.onPlanet.base);
-        setStatus(`Docked to base at ${this.playerShip.onPlanet.name} planet`);
+        setStatus('planet', 'docked', this.playerShip.onPlanet);
         if (!noSave) localStorage.space2d3_2 = JSON.stringify(this.toJSON());
     };
+
+    joinShip(ship: Ship) {
+        assert(this.state == GS.flying);
+        this.state = GS.withShip;
+        this.withShip = ship;
+        this.timeFlies = false;
+    }
+
+    leaveShip() {
+        assert(this.state == GS.withShip);
+        gs.state = GS.flying;
+        this.timeFlies = true;
+        setStatus('ship', 'none');
+        //re+enter currect component - for example, if you left the ship while standing in Radar component
+        this.walker.triggerOnEnter();
+    }
 
     toJSON() {
         return {
             'v': 2,
             's': this.star.toJSON(),
             'n': this.now,
+            'ns': nextShip,
         }
     }
 
@@ -97,6 +134,7 @@ export class GameState {
         if (playerShips.length != 1) return false;
         gs.playerShip = playerShips[0];
         gs.now = a.n;
+        setNextShip(a.ns || 0);
         return gs;
     }
 }
@@ -111,7 +149,7 @@ export function loadGS(data) {
 }
 
 export function newGS() {
-    if (gs) gs._timeFlies = false;
+    if (gs) gs.timeFlies = false; //in case a game is already in progress
     gs = new GameState();
 }
 

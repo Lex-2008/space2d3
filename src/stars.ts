@@ -106,6 +106,7 @@ export class Star {
 				this.ships[i].i = i;
 				if (this.ships[i].isIntercepting) {
 					this.ships[i].interceptingShip = this.ships[load.sh[i].is];
+					this.ships[i].interceptingShip.setIsBeingIntercepted(this.ships);
 				}
 			}
 		}

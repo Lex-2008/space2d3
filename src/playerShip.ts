@@ -1,5 +1,5 @@
-import { gs } from "./gameState";
-import { setStatus } from "./utils";
+import { GS, gs } from "./gameState";
+import { assert, setStatus } from "./utils";
 import { Planet } from "./planets";
 import { Ship, ShipData } from "./ship";
 import { Star } from "./stars";
@@ -8,11 +8,27 @@ import { Star } from "./stars";
 export class PlayerShip extends Ship {
     // flying = false;
     onPlanet: Planet | null;
+    targetShip: Ship | null;
 
     updateSpaceXY(now: number, allowArrive: boolean = true) {
         // console.log('updateSpaceXY', now, this.toTime);
-        super.updateSpaceXY(now, false);
-        if (now >= this.toTime && allowArrive) gs.arrive();
+        switch (gs.state) {
+            case GS.flying:
+                if (now >= this.toTime && allowArrive) {
+                    gs.arrive();
+                }
+                else super.updateSpaceXY(now, false);
+                break;
+            case GS.onPlanet:
+                assert(this.onPlanet);
+                this.x = this.onPlanet.x;
+                this.y = this.onPlanet.y;
+                break;
+            case GS.withShip:
+                assert(!gs.timeFlies);
+                super.updateSpaceXY(now, false);
+                break;
+        }
     }
 
     considerIntercept() { }
@@ -20,6 +36,7 @@ export class PlayerShip extends Ship {
     static randomShip(size: number): PlayerShip {
         let ship = new PlayerShip();
         Ship.randomShip(size, ship); //also fills in properties of the `ship` argument
+        ship.name = 'Your Ship';
         return ship;
     }
 

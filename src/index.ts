@@ -2,10 +2,10 @@
 import { PlayerShip } from "./playerShip.js";
 import { ShipData } from "./ship.js";
 import { Component } from "./components.js";
-import { gebi, showDate } from "./utils.js";
+import { gebi, setStatus, showDate, toPoint } from "./utils.js";
 import { Walker } from "./walker.js";
 import { Star } from "./stars.js";
-import { gs, loadGS, newGS } from "./gameState.js";
+import { GS, gs, loadGS, newGS } from "./gameState.js";
 import { shipBaseSpeed } from "./const.js";
 import { draw_star } from "./draw.js";
 
@@ -57,7 +57,8 @@ function newGame(shipData?: ShipData) {
     else gs.playerShip = PlayerShip.randomShip(15);
     gs.star.ships.push(gs.playerShip);
 
-    gs.playerShip.toPlanet = gs.star.planets[0];
+    gs.playerShip.fromPoint = toPoint(gs.star.planets[1]);
+    gs.playerShip.toPlanet = gs.star.planets[1];
     // gs.playerShip.planTrip({ x: gs.star.planets[0].x - shipBaseSpeed, y: gs.star.planets[0].y }, gs.star.planets[0], -1);
     gs.now = 0;
     startGame(true);
@@ -75,6 +76,7 @@ function startGame(newGame = false) {
     w.jumpTo(w.oneShipData.x0 + 1, w.oneShipData.y0 + 1);
     gs.walker = w;
     gebi('main').style.display = 'flex';
+    gs.state = GS.flying;
     gs.arrive(!newGame, newGame); //do not trigger onEnter on loadGame (you're supposed to reused saved data instead of regenerating new one); do not save on new game
     showDate(Math.floor(gs.now));
     const c = gebi('systemCanvas') as HTMLCanvasElement;
@@ -83,6 +85,7 @@ function startGame(newGame = false) {
     for (let ship of gs.star.ships) {
         ship.updateSpaceXY(gs.now, false);
     }
+    setStatus('ship', 'none'); //in case a game is already in progress
     window.gs = gs;
 }
 

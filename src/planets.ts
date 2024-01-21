@@ -1,5 +1,6 @@
 import { Cargo, Food, Fuel, Iron, MissionBox, Radioactives, ResourceCargo, Rocket, Water, isCargoType, isMissionBox } from "./cargo";
 import { NormalComponent, isCargoBay, isNormalComponentType } from "./components";
+import { shipBaseSpeed } from "./const";
 import { gs } from "./gameState";
 import { Point } from "./geometry";
 import { fromJSON, types } from "./saveableType";
@@ -102,6 +103,19 @@ export class Planet {
 		if (data.df) planet.deliveryMissionFuel = data.df;
 		if (data.cc) planet.cargoMissionComponent = types[data.cc] as any as typeof NormalComponent;
 		return planet;
+	}
+
+	toHTML(sayPlanet: boolean, showTimeFrom?: Ship, showBuySell?: boolean) {
+		let time = '';
+		if (showTimeFrom) {
+			let dist = showTimeFrom.distanceTo(this);
+			if (dist < 0.01) dist = 0;
+			time = ` (${Math.ceil(dist / shipBaseSpeed)} d)`;
+		}
+		const square = `<span class="colorCircle" style="background: radial-gradient(closest-side, ${this.color_in}, ${this.color_out});"></span>`;
+		let ret = `${square} <b>${this.name}</b>${sayPlanet ? ' planet' : ''}${time}`;
+		if (showBuySell) ret += `<br>${this.buys ? `wants: ${this.buys.id}` : ''} ${this.sells ? `gives: ${this.sells.id}` : ''}`;
+		return ret;
 	}
 
 	dispatch(ship: Ship, departTime: number) {
