@@ -61,7 +61,7 @@ export class Star {
 		if (!load) {
 			load = {
 				c: randomFrom(starColors),
-				sz: randomInt(5, 9),
+				sz: randomInt(7, 9),
 				// n: false,
 				p: false,
 				sh: false,
