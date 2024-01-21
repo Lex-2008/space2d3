@@ -95,8 +95,8 @@ export class Ship {
                 assert(this.interceptingShip.toTime > now);
                 // Note: next line might move the target ship "back in time" a bit
                 this.interceptingShip.updateSpaceXY(this.interceptionTime);
-                if (this.interceptingShip.distanceTo({ 'x': this.interceptionX, 'y': this.interceptionY }) > 0.02) {
-                    console.warn(`${this.interceptingShip.name} ship got away from ${this.name}, dist `, this.distanceTo(this.interceptingShip));
+                if (this.interceptingShip.distanceTo({ 'x': this.interceptionX, 'y': this.interceptionY }) > 0.05) {
+                    console.warn(`${this.interceptingShip.name} ship got away from ${this.name}, dist `, this.interceptingShip.distanceTo({ 'x': this.interceptionX, 'y': this.interceptionY }));
                     assert(this.interceptingShip instanceof PlayerShip);
                     this.isIntercepting = false;
                     this.interceptingShip.setIsBeingIntercepted();
