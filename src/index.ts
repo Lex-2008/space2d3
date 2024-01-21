@@ -65,7 +65,7 @@ function newGame(shipData?: ShipData) {
 }
 
 function loadGame() {
-    if (!loadGS(JSON.parse(localStorage.space2d3_2))) return false;
+    if (!loadGS(JSON.parse(localStorage.space2d3_3))) return false;
     startGame();
     return true;
 }
@@ -92,9 +92,9 @@ function startGame(newGame = false) {
 gebi('newGameEasy').onclick = () => { newGame(newEasyShip) };
 gebi('newGameHard').onclick = () => { newGame() };
 
-if (localStorage.space2d3_2) {
+if (localStorage.space2d3_3) {
     if (!loadGame()) {
-        localStorage.space2d3_2 = prompt('Error loading game. Fix savegame data below or press Cancel to delete savegame and start anew', localStorage.space2d3_2) || '';
+        localStorage.space2d3_3 = prompt('Error loading game. Fix savegame data below or press Cancel to delete savegame and start anew', localStorage.space2d3_3) || '';
         location.reload();
     }
 } else (gebi('newGameDialog') as HTMLDialogElement).showModal();

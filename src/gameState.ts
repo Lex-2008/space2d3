@@ -98,7 +98,7 @@ export class GameState {
         if (!noOnEnter) this.playerShip.onPlanet.onEnter();
         this.walker.attach(this.playerShip.onPlanet.base);
         setStatus('planet', 'docked', this.playerShip.onPlanet);
-        if (!noSave) localStorage.space2d3_2 = JSON.stringify(this.toJSON());
+        if (!noSave) localStorage.space2d3_3 = JSON.stringify(this.toJSON());
     };
 
     joinShip(ship: Ship) {
