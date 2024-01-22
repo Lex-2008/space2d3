@@ -50,6 +50,10 @@
 			display: none
 		}
 
+		#NavigationComputer_Select:has(#infoInput:not(:checked)) .info {
+			display: none;
+		}
+
 		.colorBox {
 			display: inline-block;
 			width: 1ex;
@@ -139,7 +143,7 @@
 				</div>
 				<div id="Cloak">Makes your ship harder to detect and scan</div>
 				<div id="NavigationComputer" class="hideChildDiv">
-					<div id="NavigationComputer_Select">Select a planet to travel to: <table></table>
+					<div id="NavigationComputer_Select">Select a planet to travel to <label>(<input type="checkbox" id="infoInput" checked> info)</label>: <table></table>
 						<button id="NavigationComputer_Fly">Fly there</button>
 						<button id="NavigationComputer_Plot">Plan course there</button>
 						<hr>

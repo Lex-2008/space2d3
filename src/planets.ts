@@ -114,7 +114,7 @@ export class Planet {
 		}
 		const square = `<span class="colorCircle" style="background: radial-gradient(closest-side, ${this.color_in}, ${this.color_out});"></span>`;
 		let ret = `${square} <b>${this.name}</b>${sayPlanet ? ' planet' : ''}${time}`;
-		if (showBuySell) ret += `<br>${this.buys ? `wants: ${this.buys.id}` : ''} ${this.sells ? `gives: ${this.sells.id}` : ''}`;
+		if (showBuySell) ret += `<div class="info">${this.buys ? `wants: ${this.buys.id}` : ''} ${this.sells ? `gives: ${this.sells.id}` : ''}</div>`;
 		return ret;
 	}
 
