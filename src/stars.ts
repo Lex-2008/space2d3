@@ -5,7 +5,7 @@ import { makePlanets, Planet, PlanetData, PlanetType } from "./planets.js";
 import { PlayerShip } from "./playerShip.js";
 import { types } from "./saveableType.js";
 import { Ship, ShipData } from "./ship.js";
-import { seq, randomFrom, randomInt, shuffle } from "./utils.js";
+import { seq, randomFrom, randomInt, shuffle, assert } from "./utils.js";
 
 // 1. copypaste table from https://www.cssportal.com/css3-color-names/ to vim
 // 2. :%s/^\t\([^\t]*\)\t#[^\t]*\t/['\1', /
@@ -92,6 +92,9 @@ export class Star {
 		for (let i = 0; i < this.planets.length; i++) {
 			let planet = this.planets[i];
 			planet.i = i;
+			if (load.p[i].dd !== undefined) {
+				planet.deliveryMissionDest = this.planets[load.p[i].dd!];
+			}
 			// add neighbours
 			planet.neighbours = shuffle(this.planets.filter(p => p != planet && !this.pathCollides(p, planet)));
 			// add planet to grid

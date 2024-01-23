@@ -44,7 +44,7 @@ export interface PlanetData {
 	'y': number,
 	'tp': number,
 	'b'?: ShipData,
-	'dd'?: string,
+	'dd'?: number,
 	'dc'?: string,
 	'dr'?: number,
 	'df'?: number,
@@ -63,7 +63,7 @@ export class Planet {
 	color_out: string;
 	neighbours: Planet[];
 	base: Ship;
-	deliveryMissionDest: string;
+	deliveryMissionDest: Planet;
 	deliveryMissionComponent: typeof NormalComponent;
 	deliveryMissionRockets: number;
 	deliveryMissionFuel: number;
@@ -83,7 +83,7 @@ export class Planet {
 			'y': this.y,
 			'tp': this.type,
 			'b': this.base.toJSON(),
-			'dd': this.deliveryMissionDest,
+			'dd': this.deliveryMissionDest?.i,
 			'dc': this.deliveryMissionComponent?.id,
 			'dr': this.deliveryMissionRockets,
 			'df': this.deliveryMissionFuel,
@@ -97,7 +97,6 @@ export class Planet {
 		planet.y = data.y;
 		if (data.b) planet.base = Ship.fromJSON(data.b);
 		else planet.base = Ship.newBase();
-		if (data.dd) planet.deliveryMissionDest = data.dd;
 		if (data.dc) planet.deliveryMissionComponent = types[data.dc] as any as typeof NormalComponent;
 		if (data.dr) planet.deliveryMissionRockets = data.dr;
 		if (data.df) planet.deliveryMissionFuel = data.df;
@@ -105,7 +104,7 @@ export class Planet {
 		return planet;
 	}
 
-	toHTML(sayPlanet: boolean, showTimeFrom?: Ship, showBuySell?: boolean) {
+	toHTML(sayPlanet?: boolean, showTimeFrom?: Ship, showBuySell?: boolean) {
 		let time = '';
 		if (showTimeFrom) {
 			let dist = showTimeFrom.distanceTo(this);
@@ -125,7 +124,7 @@ export class Planet {
 		ship.planTrip(dest, departTime);
 	}
 	onEnter() {
-		this.deliveryMissionDest = randomFrom(this.neighbours).name;
+		this.deliveryMissionDest = randomFrom(this.neighbours);
 		const noramalComponentTypes = Object.values(types).filter(isNormalComponentType);
 		this.cargoMissionComponent = randomFrom(noramalComponentTypes);
 		this.deliveryMissionComponent = randomFrom(noramalComponentTypes);

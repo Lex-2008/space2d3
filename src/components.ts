@@ -365,11 +365,11 @@ export class MissionComputer extends BaseOnlyComputerComponent {
                 this.deliveryMissionGivesBoxes = Math.max(1, Math.floor(gs.playerShip.freeCargo / cargoPerCargoBay)) * cargoPerDeliveryMission;
             }
             gebi('MissionComputer_Offer_n').innerText = this.deliveryMissionGivesBoxes.toString();
-            gebi('MissionComputer_Offer_to').innerText = planet.deliveryMissionDest;
+            gebi('MissionComputer_Offer_to').innerHTML = planet.deliveryMissionDest.toHTML(true);
             gebi('MissionComputer_Offer_CargoBay').style.display = this.deliveryMissionGivesFreeCargoBay ? '' : 'none';
             gebi('MissionComputer_Offer_NoCargoBay').style.display = this.deliveryMissionGivesFreeCargoBay ? 'none' : '';
             gebi('MissionComputer_Offer_accept').onclick = () => {
-                gs.playerShip.putMissionBox(planet.name, planet.deliveryMissionDest, this.deliveryMissionGivesBoxes);
+                gs.playerShip.putMissionBox(planet.name, planet.deliveryMissionDest.name, this.deliveryMissionGivesBoxes);
                 this.showDiv(0, 'Started');
             };
             this.fillRowSelectButtons('MissionComputer_Offer_CargoBay_select', this.deliveryMissionFreeCargoBaySelect);
@@ -394,7 +394,7 @@ export class MissionComputer extends BaseOnlyComputerComponent {
         gs.playerShip.balanceBallast();
         gs.playerShip.countComponents();
         gs.playerShip.countCargo();// we've added a cargo box
-        gs.playerShip.putMissionBox(planet.name, planet.deliveryMissionDest, t.deliveryMissionGivesBoxes);
+        gs.playerShip.putMissionBox(planet.name, planet.deliveryMissionDest.name, t.deliveryMissionGivesBoxes);
         gs.walker.reattach();
         t.showDiv(0, 'Started');
     }
