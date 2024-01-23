@@ -1,4 +1,4 @@
-import { Airlock, Cloak, Component, ComputerComponent, Passage } from "./components"
+import { Airlock, Cloak, Component, ComputerComponent, Passage, UselessComponent } from "./components"
 import { WalkMap } from "./walker";
 import { Ship, xywh } from "./ship";
 import { Planet } from "./planets";
@@ -6,7 +6,7 @@ import { Star } from "./stars";
 import { planet_size } from "./const";
 import { gs } from "./gameState";
 import { PlayerShip } from "./playerShip";
-import { gebi } from "./utils";
+import { assert, gebi } from "./utils";
 
 export const componentSize = 50
 export const componentOffset = 5
@@ -21,7 +21,8 @@ function drawComponent(ctx: CanvasRenderingContext2D, x: number, y: number, ship
     }
     ctx.lineWidth = 5;
     ctx.strokeStyle = ship.color;
-    ctx.fillStyle = ship.color2;
+    if (component instanceof UselessComponent) ctx.fillStyle = ship.color3;
+    else ctx.fillStyle = ship.color2;
     ctx.fill();
     ctx.stroke();
     ctx.textBaseline = 'top';
@@ -60,15 +61,22 @@ function drawPassage(ctx: CanvasRenderingContext2D, x0: number, y0: number, ship
             }
 }
 
-export function drawAirlock(ctx: CanvasRenderingContext2D, x: number, y: number, a: Ship, b: Ship, map: WalkMap) {
+interface ComponentAndShip {
+    component?: Component,
+    ship?: Ship,
+}
+export function drawAirlock(ctx: CanvasRenderingContext2D, x: number, y: number, top: ComponentAndShip, bottom: ComponentAndShip, map: WalkMap) {
+    assert(top.component && top.ship && bottom.component && bottom.ship);
     // NOTE: YOUR ship is always the lower one
     // TODO: this is for normal-to-normal ship. How it will look with alien ships - TBD
     const gradient = ctx.createLinearGradient(x * componentSize + componentOffset, y * componentSize, x * componentSize + componentOffset, (y + 1) * componentSize);
     const gradient2 = ctx.createLinearGradient(x * componentSize + componentOffset, y * componentSize, x * componentSize + componentOffset, (y + 1) * componentSize);
-    gradient.addColorStop(0, a.color);
-    gradient.addColorStop(1, b.color);
-    gradient2.addColorStop(0, a.color2);
-    gradient2.addColorStop(1, b.color2);
+    gradient.addColorStop(0, top.ship.color);
+    gradient.addColorStop(1, bottom.ship.color);
+    if (top.component instanceof UselessComponent) gradient2.addColorStop(0, top.ship.color3);
+    else gradient2.addColorStop(0, top.ship.color2);
+    if (bottom.component instanceof UselessComponent) gradient2.addColorStop(0, bottom.ship.color3);
+    else gradient2.addColorStop(1, bottom.ship.color2);
     ctx.strokeStyle = gradient;
     ctx.fillStyle = gradient2;
     ctx.beginPath();

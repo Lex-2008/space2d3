@@ -50,6 +50,7 @@ export class Ship {
     name: string;
     color: string;
     color2: string;
+    color3: string;
     isAlien: boolean = false
     rows: Array<Array<Component>> = []
     offsets: Array<number> = []
@@ -76,6 +77,7 @@ export class Ship {
     interceptionX: number
     interceptionY: number
     interceptionTime: number
+    // for drawing, rows where the light is on
 
     get isBeingIntercepted() { return this._isBeingIntercepted }
 
@@ -324,7 +326,7 @@ export class Ship {
         ship.isAlien = data.a;
         ship.name = data.n;
         ship.color = data.c;
-        ship.color2 = '#' + calcColor2(data.c.substr(1));
+        [ship.color2, ship.color3] = calcColor2(data.c.substr(1));
         ship.offsets = data.o;
         ship.rows = [];
         for (let row = 0; row < data.r.length; row++) {
@@ -454,7 +456,7 @@ export class Ship {
         const color = data.color;
         ship.name = data.name;
         ship.color = '#' + color;
-        ship.color2 = '#' + calcColor2(color);
+        [ship.color2, ship.color3] = calcColor2(color);
         ship.rows = [[], [], [], []]
         ship.offsets = [0, 0, 0, 0]
         for (let i = 0; i < size; i++) {
@@ -481,7 +483,7 @@ export class Ship {
         const ship = new Ship();
         const color = randomFrom(shipColors);
         ship.color = '#' + color;
-        ship.color2 = '#' + calcColor2(color);
+        [ship.color2, ship.color3] = calcColor2(color);
         ship.rows = [[], [], []];
         const components = shuffle([new NavigationComputer(), new Radar(), new TradingComputer(), new MissionComputer()])
         for (let component of components)

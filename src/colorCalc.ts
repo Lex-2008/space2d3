@@ -155,5 +155,5 @@ export function LtoRGB(l) {
         : 12.92 * var_R;
     r = Math.round(r * 255);
 
-    return (1 << 24 | r << 16 | r << 8 | r).toString(16).slice(1);
+    return '#' + (1 << 24 | r << 16 | r << 8 | r).toString(16).slice(1);
 }

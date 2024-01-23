@@ -57,9 +57,10 @@ export function showDate(today: number) {
 }
 
 export function calcColor2(hex: string) {
-	const l = RGBtoL(hex);
-	if (l < 50) return LtoRGB(Math.min(l + 50, 100));
-	else return LtoRGB(Math.max(l - 50, 0));
+	let l = RGBtoL(hex);
+	if (l < 50) l = Math.min(l + 50, 100);
+	else l = Math.max(l - 50, 0);
+	return [LtoRGB(l), LtoRGB(Math.max(l - 20, 0))];
 }
 
 export function assert(condition: any, msg?: any, ...args): asserts condition {
