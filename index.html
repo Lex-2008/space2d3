@@ -25,7 +25,8 @@
 			text-align: center;
 		}
 
-		legend {
+		legend,
+		.nowrap {
 			white-space: nowrap
 		}
 
@@ -181,7 +182,7 @@
 						<div id="MissionComputer_0_None">This planet does not offer delivery mission</div>
 						<div id="MissionComputer_0_InProgress">You already have mission boxes from this planet to <b id="MissionComputer_InProgress_to"></b> planet</div>
 						<div id="MissionComputer_0_NoSpace">This planet <i>would</i> offer you a mission, but you don't have enough available cargo space! A free cargo bay can't be provided this time, since you already have enough of them. Free some cargo space in order to accept job offers! Hint: you can lose some cargo by attacking other ships.</div>
-						<div id="MissionComputer_0_Offer">This planet offers you a mission: deliver <b id="MissionComputer_Offer_n">N</b> boxes of cargo to <b id="MissionComputer_Offer_to"></b> planet and get a reward.</b>
+						<div id="MissionComputer_0_Offer">This planet offers you a mission: deliver <b id="MissionComputer_Offer_n">N</b> boxes of cargo to <b id="MissionComputer_Offer_to" class="nowrap"></b> planet and get a reward.</b>
 							<div id="MissionComputer_Offer_CargoBay">Required cargo bay will be provided free of charge. To start this mission, select where to add a free cargo bay: <div id="MissionComputer_Offer_CargoBay_select"></div>
 							</div>
 							<div id="MissionComputer_Offer_NoCargoBay">

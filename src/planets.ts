@@ -5,7 +5,7 @@ import { gs } from "./gameState";
 import { Point } from "./geometry";
 import { fromJSON, types } from "./saveableType";
 import { Ship, ShipData } from "./ship";
-import { shuffle, seq, randomFrom, randomInt } from "./utils";
+import { shuffle, seq, randomFrom, randomInt, assert } from "./utils";
 
 export type PlanetType = [name: string, buys: typeof ResourceCargo | null, sells: typeof ResourceCargo, color_in: string, color_out: string];
 
@@ -35,6 +35,16 @@ const planetTypes = (function () {
 			if (buy == sell) continue;
 			ret.push([planetNamesTable[buy][sell] as string, resources[buy], resources[sell], resources[buy].color, resources[sell].color])
 		}
+	}
+	return ret;
+})();
+
+export type planetInfo = { 'color_in': string, 'color_out': string };
+
+export const planetInfos = (function () {
+	let ret: Record<string, planetInfo> = {};
+	for (let planet of planetTypes) {
+		ret[planet[0]] = { 'color_in': planet[3], 'color_out': planet[4] };
 	}
 	return ret;
 })();
@@ -112,10 +122,16 @@ export class Planet {
 			if (dist < 0.01) dist = 0;
 			time = ` (${Math.ceil(dist / shipBaseSpeed)} d)`;
 		}
-		const square = `<span class="colorCircle" style="background: radial-gradient(closest-side, ${this.color_in}, ${this.color_out});"></span>`;
-		let ret = `${square} <b>${this.name}</b>${sayPlanet ? ' planet' : ''}${time}`;
+		let ret = `${Planet.toHTML(this.name)}${sayPlanet ? ' planet' : ''}${time}`;
 		if (showBuySell) ret += `<div class="info">${this.buys ? `wants: ${this.buys.id}` : ''} ${this.sells ? `gives: ${this.sells.id}` : ''}</div>`;
 		return ret;
+	}
+
+	static toHTML(name: string) {
+		const planet = planetInfos[name];
+		assert(planet);
+		const square = `<span class="colorCircle" style="background: radial-gradient(closest-side, ${planet.color_in}, ${planet.color_out});"></span>`;
+		return `${square} <b>${name}</b>`;
 	}
 
 	dispatch(ship: Ship, departTime: number) {
