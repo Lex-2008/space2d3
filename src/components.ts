@@ -350,8 +350,8 @@ export class MissionComputer extends BaseOnlyComputerComponent {
         } else if (missionBoxesFromHere.length) {
             this.showDiv(0, 'InProgress');
             const allDests = missionBoxesFromHere.map(box => box.to);
-            const uniqDests = [...new Set(allDests)];
-            gebi('MissionComputer_InProgress_to').innerText = uniqDests.join(', ');
+            const uniqDests = [...new Set(allDests)].map(x => Planet.toHTML(x));
+            gebi('MissionComputer_InProgress_to').innerHTML = uniqDests.join(', ');
         } else if (gs.playerShip.freeCargo < cargoPerDeliveryMission && gs.playerShip.componentTypes[CargoBay.id] >= maxFreeCargoBays) {
             this.showDiv(0, 'NoSpace');
         } else {
