@@ -450,7 +450,7 @@ export class Ship {
         const noramalComponentTypes = Object.values(types).filter(isNormalComponentType);
         const computerTypes = Object.values(types).filter(isComputerComponentType);
         const componentTypes = noramalComponentTypes.concat(computerTypes);
-        const cargoTypes = Object.values(types).filter(isCargoType);
+        const cargoTypes = Object.values(types).filter(x => isCargoType(x) && !(x instanceof MissionBox));
         if (ship === undefined) ship = new Ship();
         const data = nextShipData();
         const color = data.color;
