@@ -245,16 +245,23 @@ export class TradingComputer extends ComputerComponent {
         gs.playerShip.countCargo();
         if (planet.buys === null) {
             // FREE GIFT
-            const giftAmount = Math.min(gs.playerShip.freeCargo, planet.ratio);
-            if (giftAmount == 0) {
+            if (gs.playerShip.freeCargo == 0) {
                 this.showDiv('NoGift');
                 return;
             }
             this.showDiv('Gift');
-            gebi('TradingComputer_gift_number').innerText = giftAmount.toString();
+
+            const slider = gebi('TradingComputer_gift_slider') as HTMLInputElement;
             gebi('TradingComputer_gift_type').innerText = planet.sells.id;
+            slider.value = slider.max = gs.playerShip.freeCargo.toString();
+            slider.style.display = gs.playerShip.freeCargo == 1 ? 'none' : '';
+            slider.onchange = () => {
+                gebi('TradingComputer_gift_number').innerText = slider.value;
+            };
+            slider.onchange();
             gebi('TradingComputer_gift_take').onclick = () => {
-                gs.playerShip.putCargo((planet).sells, giftAmount);
+                const giftAmount = parseInt(slider.value);
+                gs.playerShip.putCargo(planet.sells, giftAmount);
                 this.showDiv('Done');
             };
             return;
