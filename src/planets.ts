@@ -164,14 +164,6 @@ function isBad(x: number, y: number, size: number) {
 	return x < center + 0.6 && x > center - 0.6 && y < center + 0.6 && y > center - 0.6;
 }
 
-function isSame(a: number, b: number, c: number) {
-	return a === b && b === c;
-}
-
-function isSeq(a: number, b: number, c: number) {
-	return a + 1 === b && b + 1 === c;
-}
-
 export function makePlanets(size: number) {
 	var thisPlanetTypes = shuffle(seq(planetTypes.length));
 	for (var _n = 0; _n < 100; _n++) {
@@ -187,15 +179,13 @@ export function makePlanets(size: number) {
 			}
 			ret.push({ 'x': xx[i] + 0.5, 'y': yy[i] + 0.5, 'tp': thisPlanetTypes[i] });
 		}
-		// Find if three planets next to each other form a diagonal.
-		// It happens if they have same(.x -.y) coordinate diff and are next to each other (x1+1=x2=x3-1)
-		// And then same for (.x +.y)
-		for (let sign = -1; sign < 2; sign += 2) {
-			let dx = ret.map(planet => { return { 'd': planet.x - sign * planet.y, 'x': planet.x } }).sort((a, b) => (a.d == b.d) ? (a.x - b.x) : (a.d - b.d));
-			for (let i = 1; i < dx.length - 1; i++) {
-				if (isSame(dx[i - 1].d, dx[i].d, dx[i + 1].d) && isSeq(dx[i - 1].x, dx[i].x, dx[i + 1].x))
-					bad = true;
-			}
+		// Find if three planets next to each other (ordered by x-coord) form a diagonal.
+		// i.e. their y-coord differs by +1 or -1
+		let dx = ret.sort((a, b) => a.x - b.x);
+		for (let i = 1; i < dx.length - 1; i++) {
+			let sign = dx[i + 1].y > dx[i - 1].y ? 1 : -1;
+			if (dx[i - 1].y + sign == dx[i].y && dx[i].y + sign == dx[i + 1].y)
+				bad = true;
 		}
 		if (!bad) return ret;
 	}
