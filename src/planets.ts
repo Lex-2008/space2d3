@@ -145,12 +145,9 @@ export class Planet {
 		const noramalComponentTypes = Object.values(types).filter(isNormalComponentType);
 		this.cargoMissionComponent = randomFrom(noramalComponentTypes);
 		this.deliveryMissionComponent = randomFrom(noramalComponentTypes);
-		const allCargoBays = gs.playerShip.rows.flat().filter(isCargoBay);
-		let missionBoxes: MissionBox[] = [];
-		for (let cargoBay of allCargoBays) {
-			missionBoxes = missionBoxes.concat(cargoBay.cargo.filter(isMissionBox));
-		}
-		const missionBoxesToHere = missionBoxes.filter(box => box.to === this.name);
+		let missionBoxesToHere: MissionBox[];
+		let missionBoxesFromHere: MissionBox[];
+		[missionBoxesToHere, missionBoxesFromHere] = gs.playerShip.interior.missionBoxesToFrom(this);
 		if (missionBoxesToHere.length) {
 			const rewardCargos = Math.max(1, Math.floor(missionBoxesToHere.length / 2));
 			this.deliveryMissionRockets = randomInt(0, rewardCargos);

@@ -5,12 +5,14 @@ import { Walker } from "./walker";
 import { Ship, nextShip, setNextShip } from "./ship";
 
 export enum GS { flying, onPlanet, withShip };
+export enum WSS { peace, preFight, fight, robbing };
 
 export class GameState {
     private _state: GS;
     star: Star;
     playerShip: PlayerShip;
     withShip: Ship;
+    withShipState: WSS;
     walker: Walker;
     now = 0;
     lastTickTimestamp: number;

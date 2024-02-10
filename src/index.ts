@@ -32,7 +32,13 @@ if (location.hostname == 'localhost' || location.hostname == '127.0.0.1') {
 // newEasyShip.toTime = 0;
 // console.log(JSON.stringify(newEasyShip.toJSON()));
 
-const newEasyShip = { "a": false, "n": "Your Ship", "c": "#5E5E5E", "o": [0, 0], "r": [[{ "t": "CargoBay", "c": [{ "t": "Water" }, { "t": "Food" }, { "t": "Iron" }, { "t": "Radioactives" }] }], [{ "t": "Ballast" }]], "frX": 0, "frY": 0, "frT": -1, "toP": 0, "toT": 0, "p": true }
+const newEasyShip = {
+    "n": "Your Ship", "c": "#5E5E5E", 'i': {
+        "a": false, "o": [0, 0],
+        "r": [[{ "t": "CargoBay", "c": [] }], [{ "t": "Ballast" }]]
+    }, "frX": 0, "frY": 0,
+    "frT": -1, "toP": 0, "toT": 0, "p": true
+}
 if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
     newEasyShip.c = '#919191';
 }

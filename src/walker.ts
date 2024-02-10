@@ -103,10 +103,10 @@ export class Walker {
     }
 
     putTwoShips(a: Ship, b: Ship) {
-        const a_sz = a.gridSize;
-        const b_sz = b.gridSize;
-        const a_lock = a.bottomAirlock;
-        const b_lock = b.topAirlock;
+        const a_sz = a.interior.gridSize;
+        const b_sz = b.interior.gridSize;
+        const a_lock = a.interior.bottomAirlock;
+        const b_lock = b.interior.topAirlock;
         const airlock_x = Math.max(a_lock, b_lock) + 1;
         const airlock_y = a_sz.h + 1;
         const max_x = airlock_x + Math.max(a_sz.w - a_lock, b_sz.w - b_lock);
@@ -141,7 +141,7 @@ export class Walker {
 
     drawMyShip() {
         this.hasSecondShip = false;
-        const gs = this.oneShipData = this.myShip.gridSize;
+        const gs = this.oneShipData = this.myShip.interior.gridSize;
         this.newMap(gs.w + 1, gs.h + 1);
         this.ctx.canvas.width = componentSize * (gs.w + 2);
         this.ctx.canvas.height = componentSize * (gs.h + 2);
@@ -157,15 +157,13 @@ export class Walker {
             this.y++;
             moveDnFromAirlock = true;
         }
-        this.secondShip.playerOnShip = (this.y < this.twoShipsData.airlock_y);
-        this.myShip.playerOnShip = (this.y > this.twoShipsData.airlock_y);
         if (this.y < this.twoShipsData.airlock_y) {
             // player on top ("a") ship
             // TODO
         } else {
             // player on bottom ("b") ship, which is also my ship
-            const player_x = this.myShip.playerX = this.x - this.twoShipsData.bx0;
-            const player_y = this.myShip.playerY = this.y - this.twoShipsData.by0;
+            const player_x = this.x - this.twoShipsData.bx0;
+            const player_y = this.y - this.twoShipsData.by0;
             this.drawMyShip();
             if (moveDnFromAirlock) {
                 this.jumpTo(this.oneShipData.x0 + 1 + player_x, this.oneShipData.y0 + player_y, false);
@@ -191,8 +189,8 @@ export class Walker {
             // assuming player is on the top ship
             return
         }
-        const player_x = this.secondShip.playerX = this.x - this.twoShipsData.ax0;
-        const player_y = this.secondShip.playerY = this.y - this.twoShipsData.ay0;
+        const player_x = this.x - this.twoShipsData.ax0;
+        const player_y = this.y - this.twoShipsData.ay0;
         this.drawTwoShips(this.secondShip, this.myShip);
         this.jumpTo(this.twoShipsData.ax0 + player_x, this.twoShipsData.ay0 + player_y);
     }

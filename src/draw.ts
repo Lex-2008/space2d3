@@ -1,6 +1,7 @@
 import { Airlock, Cloak, Component, ComputerComponent, Passage, UselessComponent } from "./components"
 import { WalkMap } from "./walker";
-import { Ship, xywh } from "./ship";
+import { Ship } from "./ship";
+import { xywh } from "./interior";
 import { Planet } from "./planets";
 import { Star } from "./stars";
 import { planet_size } from "./const";
@@ -14,7 +15,7 @@ export const componentOffset = 5
 function drawComponent(ctx: CanvasRenderingContext2D, x: number, y: number, ship: Ship, component: Component, map: WalkMap) {
     const textOffset = 5;
     ctx.beginPath();
-    if (ship.isAlien) {
+    if (ship.interior.isAlien) {
         ctx.rect(x * componentSize, y * componentSize + componentOffset, componentSize, componentSize - 2 * componentOffset);
     } else {
         ctx.rect(x * componentSize + componentOffset, y * componentSize, componentSize - 2 * componentOffset, componentSize);
@@ -34,15 +35,15 @@ function drawComponent(ctx: CanvasRenderingContext2D, x: number, y: number, ship
     ctx.fillText(componentTitle, x * componentSize + componentOffset + textOffset, y * componentSize + textOffset + 16);
     map[x][y] = {
         canBeHere: true,
-        canGoX: ship.isAlien,
-        canGoY: !ship.isAlien,
+        canGoX: ship.interior.isAlien,
+        canGoY: !ship.interior.isAlien,
         ship: ship,
         component: component,
     }
 }
 
 function drawPassage(ctx: CanvasRenderingContext2D, x0: number, y0: number, ship: Ship, map: WalkMap) {
-    const p = ship.passage
+    const p = ship.interior.passage;
     ctx.beginPath();
     ctx.rect((x0 + p.x) * componentSize, (y0 + p.y) * componentSize, p.w * componentSize, p.h * componentSize);
     ctx.strokeStyle = ship.color;
@@ -98,14 +99,9 @@ export function drawAirlock(ctx: CanvasRenderingContext2D, x: number, y: number,
 
 export function drawShip(ctx: CanvasRenderingContext2D, x0, y0, ship: Ship, map: WalkMap) {
     // draw ship INTERIOR
-    for (let row = 0; row < ship.rows.length; row++) {
-        for (let i = 0; i < ship.rows[row].length; i++) {
-            let component = ship.rows[row][i];
-            let xy = ship.rowToXY(row, i);
-            component.cellName = String.fromCharCode(65 + row) + xy.y;
-            drawComponent(ctx, x0 + xy.x, y0 - xy.y, ship, component, map);
-        }
-    }
+    ship.interior.forEachComponent((xy, component) => {
+        drawComponent(ctx, x0 + xy.x, y0 - xy.y, ship, component, map);
+    })
     drawPassage(ctx, x0, y0, ship, map);
 }
 

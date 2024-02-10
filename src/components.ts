@@ -116,7 +116,7 @@ export class Radar extends NormalComponent {
         // const ship = gs.walker.map[gs.walker.x][gs.walker.y].ship;
         const ship = this.ship;
         if (ship === undefined) return;
-        const myRadars = ship.componentTypes[Radar.id];
+        const myRadars = ship.interior.componentTypes[Radar.id];
         draw_ships(ctx, gs.star.ships, myRadars);
         const newHTML = gs.star.ships.filter(ship => ship.seenBy(gs.playerShip, myRadars)).map(s => { return { 'ship': s, 'dist': gs.playerShip.distanceTo(s) } }).sort((a, b) => a.dist - b.dist).map(this.shipDiv).join('');
         if (newHTML != this.oldHTML && (!ts || (this.lastHTMLUpdate + 500 <= ts))) {
@@ -200,7 +200,7 @@ export class NavigationComputer extends ComputerComponent {
 
         const ship = gs.playerShip.targetShip;
         if (!ship) this.showDiv('Select', 'notarget');
-        else if (!ship.seenBy(this.ship, this.ship.componentTypes[Radar.id])) this.showDiv('Select', 'nosee');
+        else if (!ship.seenBy(this.ship, this.ship.interior.componentTypes[Radar.id])) this.showDiv('Select', 'nosee');
         else if (ship.isIntercepting) this.showDiv('Select', 'interceptor');
         else {
             // TODO: store vx,vy in ship
@@ -242,10 +242,10 @@ export class TradingComputer extends ComputerComponent {
             this.showDiv('None');
             return;
         }
-        gs.playerShip.countCargo();
+        gs.playerShip.interior.countCargo();
         if (planet.buys === null) {
             // FREE GIFT
-            if (gs.playerShip.freeCargo == 0) {
+            if (gs.playerShip.interior.freeCargo == 0) {
                 this.showDiv('NoGift');
                 return;
             }
@@ -253,21 +253,21 @@ export class TradingComputer extends ComputerComponent {
 
             const slider = gebi('TradingComputer_gift_slider') as HTMLInputElement;
             gebi('TradingComputer_gift_type').innerText = planet.sells.id;
-            slider.value = slider.max = gs.playerShip.freeCargo.toString();
-            slider.style.display = gs.playerShip.freeCargo == 1 ? 'none' : '';
+            slider.value = slider.max = gs.playerShip.interior.freeCargo.toString();
+            slider.style.display = gs.playerShip.interior.freeCargo == 1 ? 'none' : '';
             slider.onchange = () => {
                 gebi('TradingComputer_gift_number').innerText = slider.value;
             };
             slider.onchange();
             gebi('TradingComputer_gift_take').onclick = () => {
                 const giftAmount = parseInt(slider.value);
-                gs.playerShip.putCargo(planet.sells, giftAmount);
+                gs.playerShip.interior.putCargo(planet.sells, giftAmount);
                 this.showDiv('Done');
             };
             return;
         }
         // rest is for normal trade
-        if (gs.playerShip.cargoTypes[planet.buys.id] < 1) {
+        if (gs.playerShip.interior.cargoTypes[planet.buys.id] < 1) {
             this.showDiv('NothingToTradde');
             return;
         }
@@ -275,13 +275,13 @@ export class TradingComputer extends ComputerComponent {
         const slider = gebi('TradingComputer_give_slider') as HTMLInputElement;
         gebi('TradingComputer_give_type').innerText = planet.buys.id;
         gebi('TradingComputer_get_type').innerText = planet.sells.id;
-        slider.value = slider.max = gs.playerShip.cargoTypes[planet.buys.id].toString();
-        slider.style.display = gs.playerShip.cargoTypes[planet.buys.id] == 1 ? 'none' : '';
+        slider.value = slider.max = gs.playerShip.interior.cargoTypes[planet.buys.id].toString();
+        slider.style.display = gs.playerShip.interior.cargoTypes[planet.buys.id] == 1 ? 'none' : '';
         slider.onchange = () => {
             const giveAmount = parseInt(slider.value);
             let getAmount = Math.round(giveAmount * planet.ratio);
-            gebi('TradingComputer_max_cargo_warning').style.display = (getAmount - giveAmount > gs.playerShip.freeCargo) ? '' : 'none';
-            getAmount = Math.min(getAmount, gs.playerShip.freeCargo + giveAmount);
+            gebi('TradingComputer_max_cargo_warning').style.display = (getAmount - giveAmount > gs.playerShip.interior.freeCargo) ? '' : 'none';
+            getAmount = Math.min(getAmount, gs.playerShip.interior.freeCargo + giveAmount);
             gebi('TradingComputer_give_number').innerText = giveAmount.toString();
             gebi('TradingComputer_get_number').innerText = getAmount.toString();
         };
@@ -289,11 +289,11 @@ export class TradingComputer extends ComputerComponent {
         gebi('TradingComputer_deal').onclick = () => {
             const giveAmount = parseInt(slider.value);
             let getAmount = Math.round(giveAmount * planet.ratio);
-            getAmount = Math.min(getAmount, gs.playerShip.freeCargo + giveAmount);
+            getAmount = Math.min(getAmount, gs.playerShip.interior.freeCargo + giveAmount);
             // console.log('before', gs.playerShip.cargoTypes, gs.playerShip.freeCargo);
             // console.log(giveAmount, planet.buys, getAmount, planet.sells);
-            gs.playerShip.getCargo(planet.buys as typeof ResourceCargo, giveAmount);
-            gs.playerShip.putCargo(planet.sells as typeof ResourceCargo, getAmount);
+            gs.playerShip.interior.getCargo(planet.buys as typeof ResourceCargo, giveAmount);
+            gs.playerShip.interior.putCargo(planet.sells as typeof ResourceCargo, getAmount);
             // console.log('after', gs.playerShip.cargoTypes, gs.playerShip.freeCargo);
             this.showDiv('Done');
         };
@@ -314,7 +314,7 @@ export class MissionComputer extends BaseOnlyComputerComponent {
         gebi('currentComponentPage').innerHTML = this.divsShown.map((id, i) => `#MissionComputer_${i}_${id}{display:block !important}`).join('');
     }
     fillRowSelectButtons(id: string, callback) {
-        const rows = seq(gs.playerShip.rows.length + 1);
+        const rows = seq(gs.playerShip.interior.rowsCount + 1);
         rows.unshift(-1);
         gebi(id).innerHTML = rows.map(i => `<button id="${id}_${i + 1}">row ${String.fromCharCode(65 + i)}</button>`).join(' ');
         rows.forEach(i => gebi(`${id}_${i + 1}`).onclick = () => { callback(i, this) });
@@ -322,15 +322,10 @@ export class MissionComputer extends BaseOnlyComputerComponent {
     onEnter(gs: GameState): void {
         const planet = gs.playerShip.onPlanet;
         if (!planet) return;
-        gs.playerShip.countCargo();
+        gs.playerShip.interior.countCargo();
         //Delivery
-        const allCargoBays = gs.playerShip.rows.flat().filter(isCargoBay);
-        let missionBoxes: MissionBox[] = [];
-        for (let cargoBay of allCargoBays) {
-            missionBoxes = missionBoxes.concat(cargoBay.cargo.filter(isMissionBox));
-        }
-        const missionBoxesFromHere = missionBoxes.filter(box => box.from === planet.name);
-        this.missionBoxesToHere = missionBoxes.filter(box => box.to === planet.name);
+        let missionBoxesFromHere: MissionBox[];
+        [this.missionBoxesToHere, missionBoxesFromHere] = gs.playerShip.interior.missionBoxesToFrom(planet);
         if (this.missionBoxesToHere.length) {
             this.showDiv(0, 'Complete');
             const rewardCargos = Math.max(1, Math.floor(this.missionBoxesToHere.length / 2));
@@ -339,14 +334,14 @@ export class MissionComputer extends BaseOnlyComputerComponent {
                 [planet.deliveryMissionRockets ? `${planet.deliveryMissionRockets} Rockets` : '',
                 planet.deliveryMissionFuel ? `${planet.deliveryMissionFuel} Fuel` : ''].filter(x => !!x).join(' and ');
             gebi('MissionComputer_Complete_resource').onclick = () => {
-                gs.playerShip.getMissionBox(planet.name, this.missionBoxesToHere.length);
-                gs.playerShip.putCargo(planet.sells, rewardCargos);
+                gs.playerShip.interior.getMissionBox(planet.name, this.missionBoxesToHere.length);
+                gs.playerShip.interior.putCargo(planet.sells, rewardCargos);
                 this.showDiv(0, 'Completed');
             }
             gebi('MissionComputer_Complete_cargo').onclick = () => {
-                gs.playerShip.getMissionBox(planet.name, this.missionBoxesToHere.length);
-                gs.playerShip.putCargo(Rocket, planet.deliveryMissionRockets);
-                gs.playerShip.putCargo(Fuel, planet.deliveryMissionFuel);
+                gs.playerShip.interior.getMissionBox(planet.name, this.missionBoxesToHere.length);
+                gs.playerShip.interior.putCargo(Rocket, planet.deliveryMissionRockets);
+                gs.playerShip.interior.putCargo(Fuel, planet.deliveryMissionFuel);
                 this.showDiv(0, 'Completed');
             }
             // TODO: if player has 5 boxes with "total"==5 and 10 boxes with "total"==10
@@ -359,24 +354,24 @@ export class MissionComputer extends BaseOnlyComputerComponent {
             const allDests = missionBoxesFromHere.map(box => box.to);
             const uniqDests = [...new Set(allDests)].map(x => Planet.toHTML(x));
             gebi('MissionComputer_InProgress_to').innerHTML = uniqDests.join(', ');
-        } else if (gs.playerShip.freeCargo < cargoPerDeliveryMission && gs.playerShip.componentTypes[CargoBay.id] >= maxFreeCargoBays) {
+        } else if (gs.playerShip.interior.freeCargo < cargoPerDeliveryMission && gs.playerShip.interior.componentTypes[CargoBay.id] >= maxFreeCargoBays) {
             this.showDiv(0, 'NoSpace');
         } else {
             this.showDiv(0, 'Offer');
-            this.deliveryMissionGivesFreeCargoBay = gs.playerShip.freeCargo < cargoPerDeliveryMission;
+            this.deliveryMissionGivesFreeCargoBay = gs.playerShip.interior.freeCargo < cargoPerDeliveryMission;
             if (this.deliveryMissionGivesFreeCargoBay) {
                 this.deliveryMissionGivesBoxes = cargoPerDeliveryMission;
             } else {
                 // Note that here we use cargoPerCargoBay. This is not a mistake. If you have 3 empty cargo bays,
                 // we don't want to occupy them completely with mission cargo.
-                this.deliveryMissionGivesBoxes = Math.max(1, Math.floor(gs.playerShip.freeCargo / cargoPerCargoBay)) * cargoPerDeliveryMission;
+                this.deliveryMissionGivesBoxes = Math.max(1, Math.floor(gs.playerShip.interior.freeCargo / cargoPerCargoBay)) * cargoPerDeliveryMission;
             }
             gebi('MissionComputer_Offer_n').innerText = this.deliveryMissionGivesBoxes.toString();
             gebi('MissionComputer_Offer_to').innerHTML = Planet.toHTML(planet.deliveryMissionDest);
             gebi('MissionComputer_Offer_CargoBay').style.display = this.deliveryMissionGivesFreeCargoBay ? '' : 'none';
             gebi('MissionComputer_Offer_NoCargoBay').style.display = this.deliveryMissionGivesFreeCargoBay ? 'none' : '';
             gebi('MissionComputer_Offer_accept').onclick = () => {
-                gs.playerShip.putMissionBox(planet.name, planet.deliveryMissionDest, this.deliveryMissionGivesBoxes);
+                gs.playerShip.interior.putMissionBox(planet.name, planet.deliveryMissionDest, this.deliveryMissionGivesBoxes);
                 this.showDiv(0, 'Started');
             };
             this.fillRowSelectButtons('MissionComputer_Offer_CargoBay_select', this.deliveryMissionFreeCargoBaySelect);
@@ -388,7 +383,7 @@ export class MissionComputer extends BaseOnlyComputerComponent {
             this.showDiv(1, 'Cargo');
             gebi('MissionComputer_Cargo_n').innerText = cargoPerCargoMission.toString();
             gebi('MissionComputer_Cargo_name').innerText = planet.buys.id;
-            gebi('MissionComputer_Cargo_deliver').style.display = (gs.playerShip.cargoTypes[planet.buys.id] >= cargoPerCargoMission) ? '' : 'none';
+            gebi('MissionComputer_Cargo_deliver').style.display = (gs.playerShip.interior.cargoTypes[planet.buys.id] >= cargoPerCargoMission) ? '' : 'none';
             gebi('MissionComputer_Cargo_component_name').innerText = planet.cargoMissionComponent.id;
             this.fillRowSelectButtons('MissionComputer_Cargo_component_select', this.cargoMissionSelect);
         }
@@ -396,24 +391,16 @@ export class MissionComputer extends BaseOnlyComputerComponent {
     deliveryMissionFreeCargoBaySelect(n: number, t) {
         const planet = gs.playerShip.onPlanet;
         if (!planet) return;
-        gs.playerShip.deBallastTail();
-        gs.playerShip.addComponent(new CargoBay(), n);
-        gs.playerShip.balanceBallast();
-        gs.playerShip.countComponents();
-        gs.playerShip.countCargo();// we've added a cargo box
-        gs.playerShip.putMissionBox(planet.name, planet.deliveryMissionDest, t.deliveryMissionGivesBoxes);
+        gs.playerShip.interior.addComponentEx(new CargoBay(), n);
+        gs.playerShip.interior.putMissionBox(planet.name, planet.deliveryMissionDest, t.deliveryMissionGivesBoxes);
         gs.walker.reattach();
         t.showDiv(0, 'Started');
     }
     deliveryMissionCompleteSelect(n: number, t) {
         const planet = gs.playerShip.onPlanet;
         if (!planet) return;
-        gs.playerShip.deBallastTail();
-        gs.playerShip.addComponent(new (planet.deliveryMissionComponent as unknown as new () => NormalComponent)(), n);
-        gs.playerShip.balanceBallast();
-        gs.playerShip.countComponents();
-        gs.playerShip.countCargo();// we might've added a cargo box
-        gs.playerShip.getMissionBox(planet.name, t.missionBoxesToHere.length);
+        gs.playerShip.interior.addComponentEx(new (planet.deliveryMissionComponent as unknown as new () => NormalComponent)(), n);
+        gs.playerShip.interior.getMissionBox(planet.name, t.missionBoxesToHere.length);
         gs.walker.reattach();
         t.showDiv(0, 'Completed');
         const noramalComponentTypes = Object.values(types).filter(isNormalComponentType);
@@ -422,12 +409,8 @@ export class MissionComputer extends BaseOnlyComputerComponent {
     cargoMissionSelect(n: number, t) {
         const planet = gs.playerShip.onPlanet;
         if (!planet?.buys) return;
-        gs.playerShip.deBallastTail();
-        gs.playerShip.addComponent(new (planet.cargoMissionComponent as unknown as new () => NormalComponent)(), n)
-        gs.playerShip.balanceBallast();
-        gs.playerShip.countComponents();
-        gs.playerShip.countCargo();// we might've added a cargo box
-        gs.playerShip.getCargo(planet.buys, cargoPerCargoMission);
+        gs.playerShip.interior.addComponentEx(new (planet.cargoMissionComponent as unknown as new () => NormalComponent)(), n)
+        gs.playerShip.interior.getCargo(planet.buys, cargoPerCargoMission);
         gs.walker.reattach();
         t.showDiv(1, 'Completed');
         const noramalComponentTypes = Object.values(types).filter(isNormalComponentType);

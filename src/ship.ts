@@ -1,12 +1,11 @@
-import { Cargo, MissionBox, UsefulCargo, isCargoType } from "./cargo"
-import { Ballast, CargoBay, Cloak, Component, MissionComputer, NavigationComputer, NormalComponent, Radar, TradingComputer, isCargoBay, isComponentType, isComputerComponentType, isNormalComponentType } from "./components"
+import { Radar } from "./components"
 import { cargoPerCargoBay, minDaysAfterIntercept, shipBaseSpeed, shipColors, shipNames } from "./const"
 import { GS, gs } from "./gameState"
 import { Point } from "./geometry"
 import { calcInterceptionTime } from "./interceptionCalc"
+import { Interior, InteriorData } from "./interior"
 import { Planet } from "./planets"
 import { PlayerShip } from "./playerShip"
-import { fromJSON, types } from "./saveableType"
 import { Star } from "./stars"
 import { assert, calcColor2, gebi, randomFrom, randomInt, setStatus, shuffle, toPoint } from "./utils"
 
@@ -19,19 +18,10 @@ function nextShipData() {
 
 export function setNextShip(n: number) { nextShip = n };
 
-export interface xywh {
-    'x': number,
-    'y': number,
-    'w': number,
-    'h': number
-}
-
 export interface ShipData {
-    'a': boolean,
     'n': string,
     'c': string,
-    'o': number[],
-    'r': { 't': string }[][],
+    'i': InteriorData,
     'frX': number,
     'frY': number,
     'frT': number,
@@ -51,18 +41,8 @@ export class Ship {
     color: string;
     color2: string;
     color3: string;
-    isAlien: boolean = false
-    rows: Array<Array<Component>> = []
-    offsets: Array<number> = []
-    componentTypes: { [typeName: string]: number }
-    cargoTypes: { [typeName: string]: number }
-    freeCargo: number
-    i: number
-    // next 4 are yet unused, to be used by detach/attach logic
-    isPlayerShip: boolean = false
-    playerOnShip: boolean = false
-    playerX: number
-    playerY: number
+    i: number;
+    interior: Interior;
     // position in space
     x: number
     y: number
@@ -77,7 +57,6 @@ export class Ship {
     interceptionX: number
     interceptionY: number
     interceptionTime: number
-    // for drawing, rows where the light is on
 
     get isBeingIntercepted() { return this._isBeingIntercepted }
 
@@ -145,7 +124,7 @@ export class Ship {
     considerIntercept(ships: Ship[], now: number) {
         if (this.isIntercepting || this.isBeingIntercepted) return;
         // consider intercepting someone
-        const interceptableShips = shuffle(ships.filter(s => s != this && !s.isIntercepting && !s.isBeingIntercepted && Math.hypot(this.x - s.x, this.y - s.y) > 1 && s.seenBy({ 'x': this.x, 'y': this.y }, this.componentTypes[Radar.id])));
+        const interceptableShips = shuffle(ships.filter(s => s != this && !s.isIntercepting && !s.isBeingIntercepted && Math.hypot(this.x - s.x, this.y - s.y) > 1 && s.seenBy({ 'x': this.x, 'y': this.y }, this.interior.componentTypes[Radar.id])));
         for (let ship of interceptableShips) {
             // TODO: store vx,vy in ship
             let vx = (ship.toPlanet.x - ship.fromPoint.x) / (ship.toTime - ship.fromTime);
@@ -186,116 +165,6 @@ export class Ship {
         // console.log('planTrip', fromTime, flyTime, dist, fromPlanet.name, toPlanet.name);
     }
 
-    countComponents() {
-        this.componentTypes = {};
-        const x = Object.values(types).filter(isComponentType).forEach(
-            type => this.componentTypes[type.id] = 0);
-        const components = this.rows.flat();
-        for (let component of components) {
-            this.componentTypes[component.typename]++;
-        }
-    }
-
-    countCargo() {
-        const allCargoBays = this.rows.flat().filter(isCargoBay);
-        this.freeCargo = 0;
-        this.cargoTypes = {};
-        Object.values(types).filter(isCargoType).forEach(
-            type => this.cargoTypes[type.id] = 0);
-        for (let cargoBay of allCargoBays) {
-            this.freeCargo += cargoPerCargoBay - cargoBay.cargo.length;
-            for (let cargo of cargoBay.cargo) {
-                this.cargoTypes[cargo.typename]++;
-                // console.log(`countCargo found ${cargo.typename}, ${this.cargoTypes[cargo.typename]} at ${cargoBay.cellName}`)
-            }
-        }
-    }
-
-    addComponent(component: Component, row: number) {
-        component.ship = this;
-        // TODO: is isAlien
-        if (row < 0) {
-            this.rows.unshift([]);
-            this.rows.push([]);
-            this.offsets.unshift(0);
-            this.offsets.push(0);
-            row = 0;
-        }
-        if (row >= this.rows.length) {
-            this.rows.unshift([]);
-            this.rows.push([]);
-            this.offsets.unshift(0);
-            this.offsets.push(0);
-            row = this.rows.length - 1;
-        }
-        this.rows[row].push(component);
-    }
-
-    getCargo(kind: typeof Cargo, amount: number) {
-        // NOTE: can't take more than we have
-        if (amount > this.cargoTypes[kind.id]) return false;
-        this.cargoTypes[kind.id] -= amount;
-        this.freeCargo += amount;
-        const allCargoBays = this.rows.flat().filter(isCargoBay).filter(cargoBay => cargoBay.cargo.length);
-        // TODO: sort
-        for (let cargoBay of allCargoBays) {
-            // filter out up to _amount_ items from cargo bays
-            // x=2;console.log([1,2,1,3,1,4,1,5].filter(v=>!(v==1&&x-->0)));
-            cargoBay.cargo = cargoBay.cargo.filter(cargo => !(cargo instanceof kind && amount-- > 0));
-            if (amount <= 0) return true;
-        }
-    }
-
-    getMissionBox(to: string, amount: number) {
-        // NOTE: can't take more than we have
-        if (amount > this.cargoTypes[MissionBox.id]) return false;
-        this.cargoTypes[MissionBox.id] -= amount;
-        this.freeCargo += amount;
-        const allCargoBays = this.rows.flat().filter(isCargoBay).filter(cargoBay => cargoBay.cargo.length);
-        // TODO: sort
-        for (let cargoBay of allCargoBays) {
-            // filter out up to _amount_ items from cargo bays
-            // x=2;console.log([1,2,1,3,1,4,1,5].filter(v=>!(v==1&&x-->0)));
-            cargoBay.cargo = cargoBay.cargo.filter(cargo => !(cargo instanceof MissionBox && cargo.to == to && amount-- > 0));
-            if (amount <= 0) return true;
-        }
-    }
-
-    putCargo(kind: typeof Cargo, amount: number) {
-        if (amount > this.freeCargo) return false;
-        this.cargoTypes[kind.id] += amount;
-        this.freeCargo -= amount;
-        const allCargoBays = this.rows.flat().filter(isCargoBay).filter(cargoBay => cargoBay.cargo.length < cargoPerCargoBay);
-        // TODO: sort
-        for (let cargoBay of allCargoBays) {
-            while (amount > 0 && cargoBay.cargo.length < cargoPerCargoBay) {
-                cargoBay.cargo.push(new (kind as unknown as new () => Cargo)());
-                amount--;
-            }
-            if (amount <= 0) return true;
-        }
-    }
-
-    putMissionBox(from: string, to: string, total: number) {
-        if (total > this.freeCargo) return false;
-        this.cargoTypes[MissionBox.id] += total;
-        this.freeCargo -= total;
-        const allCargoBays = this.rows.flat().filter(isCargoBay).filter(cargoBay => cargoBay.cargo.length < cargoPerCargoBay);
-        // TODO: sort
-        let amount = total;
-        for (let cargoBay of allCargoBays) {
-            while (amount > 0 && cargoBay.cargo.length < cargoPerCargoBay) {
-                let box = new MissionBox();
-                box.from = from;
-                box.to = to;
-                box.total = total;
-                cargoBay.cargo.push(box);
-                amount--;
-            }
-            if (amount <= 0) return true;
-        }
-    }
-
     seenBy(pos: Point, myRadars: number) {
         const dist = this.distanceTo(pos);
         return true;// myRadars >= dist + this.componentTypes[Cloak.id];
@@ -303,11 +172,9 @@ export class Ship {
 
     toJSON(): ShipData {
         return {
-            'a': this.isAlien,
             'n': this.name,
             'c': this.color,
-            'o': this.offsets,
-            'r': this.rows.map(row => row.map(component => component.toJSON())),
+            'i': this.interior.toJSON(),
             'frX': this.fromPoint?.x,
             'frY': this.fromPoint?.y,
             'frT': this.fromTime,
@@ -323,18 +190,10 @@ export class Ship {
 
     static fromJSON(data: ShipData, star?: Star, ship?: Ship) {
         if (!ship) ship = new Ship();
-        ship.isAlien = data.a;
         ship.name = data.n;
         ship.color = data.c;
         [ship.color2, ship.color3] = calcColor2(data.c.substr(1));
-        ship.offsets = data.o;
-        ship.rows = [];
-        for (let row = 0; row < data.r.length; row++) {
-            ship.rows[row] = [];
-            for (let c = 0; c < data.r[row].length; c++) {
-                ship.addComponent(fromJSON(data.r[row][c]) as Component, row);
-            }
-        }
+        ship.interior = Interior.fromJSON(data.i, ship);
         ship.fromPoint = { 'x': data.frX, 'y': data.frY };
         ship.fromTime = data.frT;
         ship.toTime = data.toT;
@@ -346,8 +205,6 @@ export class Ship {
             ship.interceptionTime = data.iT;
         }
         // ship.balanceBallast();
-        ship.fillBallastOpposite();
-        ship.countComponents();
         return ship;
     }
 
@@ -360,7 +217,7 @@ export class Ship {
         }
         const square = `<span class="colorBox" style="background:${this.color};border-color:${this.color2}"></span>`;
         // if (sayShip) {
-        const type = this.isAlien ? '<i>Alien</i>' : this.rows.length % 2 ? '<i>Odd</i>' : '';
+        const type = this.interior.isAlien ? '<i>Alien</i>' : this.interior.isOdd ? '<i>Odd</i>' : '';
         return `${square} ${type}${sayShip ? 'ship ' : ''}<b>${this.name}</b>${time}`;
         // } else {
         //     const type = this.isAlien ? ' (<i>Alien</i>)' : this.rows.length % 2 ? ' (<i>Odd</i>)' : '';
@@ -368,114 +225,14 @@ export class Ship {
         // }
     }
 
-    // functions used in drawing
-    get gridSize() {
-        if (this.isAlien) {
-            // TODO
-            return {
-                'x0': 0,
-                'x1': 0,
-                'y0': 0,
-                'y1': 0,
-                'w': 0,
-                'h': 0
-            }
-        } else {
-            let max_pos = 0
-            let max_neg = 0
-            for (let i = 0; i < this.rows.length; i++) {
-                max_pos = Math.max(max_pos, this.rows[i].length - this.offsets[i])
-                max_neg = Math.max(max_neg, this.offsets[i])
-            }
-            return {
-                'x0': 0,
-                'x1': this.rows.length - 1,
-                'y0': max_pos,
-                'y1': max_neg,
-                'w': this.rows.length,
-                'h': max_pos + max_neg + 1
-            }
-        }
-    }
-    rowToXY(row: number, i: number) {
-        if (this.isAlien) {
-            // TODO
-            return {
-                'x': 0,
-                'y': 0
-            }
-        } else {
-            if (i >= this.offsets[row]) {
-                return {
-                    'x': row,
-                    'y': 1 + (i - this.offsets[row])
-                }
-            } else {
-                return {
-                    'x': row,
-                    'y': (i - this.offsets[row])
-                }
-            }
-        }
-    }
-    get passage(): xywh {
-        if (this.isAlien) {
-            // TODO
-            return {
-                'x': 0,
-                'y': 0,
-                'w': 0,
-                'h': 0
-            }
-        } else {
-            return {
-                'x': 0,
-                'y': 0,
-                'w': this.rows.length,
-                'h': 1
-            }
-        }
-    }
-    oppositeComponent(a: Component) {
-        for (let row = 0; row <= this.rows.length; row++) {
-            let i = this.rows[row].indexOf(a)
-            if (i >= 0) {
-                return this.rows[this.rows.length - 1 - row][i]
-            }
-        }
-    }
-
     static randomShip(size: number, ship?: Ship) {
-        const rowCount = 4
-        const noramalComponentTypes = Object.values(types).filter(isNormalComponentType);
-        const computerTypes = Object.values(types).filter(isComputerComponentType);
-        const componentTypes = noramalComponentTypes.concat(computerTypes);
-        const cargoTypes = Object.values(types).filter(x => isCargoType(x) && !(x instanceof MissionBox));
         if (ship === undefined) ship = new Ship();
         const data = nextShipData();
         const color = data.color;
         ship.name = data.name;
         ship.color = '#' + color;
         [ship.color2, ship.color3] = calcColor2(color);
-        ship.rows = [[], [], [], []]
-        ship.offsets = [0, 0, 0, 0]
-        for (let i = 0; i < size; i++) {
-            let componentType = randomFrom(componentTypes) as unknown as new () => Component
-            let component = new componentType()
-            if (component instanceof CargoBay) {
-                let cargos = randomInt(0, cargoPerCargoBay);
-                for (let j = 0; j < cargos; j++) {
-                    let cargoType = randomFrom(cargoTypes) as unknown as new () => Cargo
-                    component.cargo.push(new cargoType())
-                }
-            }
-            ship.addComponent(component, randomInt(0, rowCount - 1));
-        }
-        for (let i = 0; i < ship.rows.length; i++) {
-            ship.offsets[i] = randomInt(0, ship.rows[i].length)
-        }
-        ship.balanceBallast()
-        ship.countComponents()
+        ship.interior = Interior.randomShip(size, ship);
         return ship
     }
 
@@ -484,143 +241,8 @@ export class Ship {
         const color = randomFrom(shipColors);
         ship.color = '#' + color;
         [ship.color2, ship.color3] = calcColor2(color);
-        ship.rows = [[], [], []];
-        const components = shuffle([new NavigationComputer(), new Radar(), new TradingComputer(), new MissionComputer()])
-        for (let component of components)
-            ship.addComponent(component, randomInt(0, 2));
-        ship.offsets = [
-            randomInt(0, ship.rows[0].length),
-            randomInt(0, ship.rows[1].length),
-            randomInt(0, ship.rows[2].length),
-        ];
-        ship.balanceBallast()
-        ship.balanceBase()
-        ship.countComponents()
+        ship.interior = Interior.newBase(ship);
         return ship
     }
 
-    deBallastTail() {
-        // remove extra ballast from tail (top of the ship)
-        // Leaves the ship unbalanced, remember to run balanceBallast after
-        if (this.isAlien) {
-            //...
-        } else {
-            const max = this.rows.length - 1;
-            for (var i = 0; i <= max; i++) {
-                while (this.rows[i].at(-1) instanceof Ballast) {
-                    this.rows[i].pop();
-                }
-            }
-        }
-    }
-    balanceBallast() {
-        if (this.isAlien) {
-            //...
-        } else {
-            const max = this.rows.length - 1
-            // balance offsets
-            for (var i = 0; i <= max; i++) {
-                while (this.offsets[i] < this.offsets[max - i]) {
-                    this.rows[i].unshift(new Ballast())
-                    this.offsets[i]++
-                }
-            }
-            // add ballast to balance 
-            for (var i = 0; i <= max; i++) {
-                while (this.rows[i].length < this.rows[max - i].length) {
-                    this.rows[i].push(new Ballast())
-                }
-            }
-            // remove extra ballast from head
-            for (var i = 0; i <= max; i++) {
-                while (this.rows[i][0] instanceof Ballast
-                    && this.rows[max - i][0] instanceof Ballast) {
-                    this.rows[i].shift()
-                    this.rows[max - i].shift()
-                    this.offsets[i]--
-                    this.offsets[max - i]++
-                }
-            }
-            // remove extra ballast from tail
-            for (var i = 0; i <= max; i++) {
-                while (this.rows[i].at(-1) instanceof Ballast
-                    && this.rows[max - i].at(-1) instanceof Ballast) {
-                    this.rows[i].pop()
-                    this.rows[max - i].pop()
-                }
-            }
-            // TODO: remove empty rows?
-        }
-        this.fillBallastOpposite()
-    }
-
-    balanceBase() {
-        const max = this.rows.length - 1;
-        for (var i = 0; i <= max; i++) {
-            // add balance at head
-            while (this.offsets[i] < this.rows[i].length / 2) {
-                this.rows[i].unshift(new Ballast());
-                this.offsets[i]++;
-            }
-            // add balance at tail
-            while (this.offsets[i] > this.rows[i].length / 2) {
-                this.rows[i].push(new Ballast())
-            }
-        }
-        this.fillBallastOpposite()
-    }
-
-    fillBallastOpposite() {
-        // record what's opposite to ballast
-        if (this.isAlien) {
-            //...
-        } else {
-            const max = this.rows.length - 1;
-            for (var i = 0; i <= max; i++) {
-                for (var j = 0; j <= this.rows[i].length; j++) {
-                    if (this.rows[i][j] instanceof Ballast) {
-                        if (!(this.rows[max - i][j] instanceof Ballast))
-                            (this.rows[i][j] as Ballast).opposite = this.rows[max - i][j].typename;
-                        else {
-                            let opposite = 2 * this.offsets[i] - j - 1;
-                            if (!(this.rows[i][opposite] instanceof Ballast))
-                                (this.rows[i][j] as Ballast).opposite = this.rows[i][opposite].typename;
-                            else {
-                                assert(!(this.rows[max - i][opposite] instanceof Ballast));
-                                (this.rows[i][j] as Ballast).opposite = this.rows[max - i][opposite].typename;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    get topAirlock() {
-        // returns x-coordinate 
-        // NOTE: putTwoShips assumes that airlock location is always counted from left side,
-        // i.e. return value=0 means "leftmost column"
-        if (this.isAlien) {
-            // TODO
-            return 0;
-        } else {
-            let maxLen = 0
-            for (let i = 0; i < this.rows.length; i++) {
-                maxLen = Math.max(maxLen, this.rows[i].length - this.offsets[i])
-            }
-            for (let i = 0; i < this.rows.length; i++) {
-                if (this.rows[i].length - this.offsets[i] == maxLen)
-                    return i
-            }
-            return 0 // should never happen
-        }
-    }
-    get bottomAirlock() {
-        if (this.isAlien) {
-            // TODO
-            return 0;
-        } else {
-            const maxOffset = Math.max(...this.offsets);
-            return this.offsets.lastIndexOf(maxOffset);
-        }
-    }
 }
